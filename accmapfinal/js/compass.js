@@ -31,7 +31,6 @@ function checkCompass(){
 }
 function getHeading(alpha, beta) {
 	var azimuth = beta - alpha;
-	var deg;
 	if (azimuth < 0)
 		return (360 + azimuth);
 	else
@@ -47,6 +46,7 @@ function transformBearing(bearing) {
 }
 
 function getClock(degrees) {
+	
 	var clockNumber = 0;
 	if (degrees < 0) {
 		console.log("error");
@@ -74,7 +74,7 @@ function getClock(degrees) {
 		clockNumber = 10;
 	} else if (degrees >= 315 && degrees < 345) {
 		clockNumber = 11;
-	} else if (degrees >= 345 && degrees < 360) {
+	} else if (degrees >= 345 && degrees <= 360) {
 		clockNumber = 12;
 	}
 	return clockNumber;
@@ -86,58 +86,32 @@ function deg2rad(a) {
 function rad2deg(a) {
 	return a *( 180 / Math.PI);
 }
-
+function normaliseBearing(degrees){
+	return (degrees + 360)%360;
+}
 function frac(a) {
 	return (a - Math.floor(a));
 }
-function calcAll(X1, Y1, X2, Y2, compassHeading) {
-	var azimCompassHeading = 0;
-	var dx = X1 - X2;
-	var dy = Y1 - Y2;
-	var azi = 0;
-	var PI = Math.PI;
-	if (dx == 0) {
-		if (dy > 0) {
-			azi = 0;
-		} else if (dy < 0) {
-			azi = 2 * PI;
-		} else if (dy == 0) {
-			console.log("Fehler: Start- und Endpunkt identisch");
-		}
-	} else if (dy == 0) {
-		if (dx > 0) {
-			azi = PI / 2;
-		}
-		if (dx < 0) {
-			azi = 3 / (2 * PI);
-		}
-	} else {
-		azi = Math.atan(Math.abs(dx / dy));
-		if (dx > 0) {
-			if (dy < 0) {
-				azi = PI - azi;
-			}
-		} else if (dx < 0) {
-			if (dy > 0) {
-				azi = 2 * PI - azi;
-			} else if (dy < 0) {
-				azi = azi + PI;
-			}
-		}
+function calcBearing(lat1, lon1, lat2, lon2) {
+	// source : http://www.movable-type.co.uk/scripts/latlong.html
+	var lat1 = deg2rad(lat1);
+	var lat2 = deg2rad(lat2);
+	var dLat = deg2rad(lat2 - lat1);
+	var dLon = deg2rad(lon2 - lon1);
+	var y = Math.sin(dLon) * Math.cos(lat2);
+	var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)
+			* Math.cos(dLon);
+	var brng = rad2deg(Math.atan2(y, x));
+	return brng;
+}
+function calcCompassBearing(lat1, lon1, lat2, lon2, compassHeading) {
+	var destinationBearing = normaliseBearing(calcBearing(lat2,lon2,lat1,lon1));
+	if(destinationBearing > compassHeading){
+		return destinationBearing - compassHeading;
+	}else if(compassHeading > destinationBearing){
+		return 360 - (compassHeading - destinationBearing);
+	}else{
+		return destinationBearing;
 	}
-	// azimuth in degrees
-	azi = azi * (180 / PI);
-	// if compassHeading greater than target-azimuth
-	if (compassHeading > azi) {
-		var temp = azi - compassHeading;
-		azimCompassHeading = 360 + temp;
-		// if compassHeading is exactly north
-	} else if (compassHeading == 0) {
-		azimCompassHeading = azi;
-	}
-	// if compassHeading smaller than target-azimuth
-	else {
-		azimCompassHeading = azi - compassHeading;
-	}
-	return azimCompassHeading;
+	
 }

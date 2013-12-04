@@ -1,9 +1,10 @@
-var orientationContent = new Array();
-function enricheWays(route){
+var orientationContent = [];
+function enricheWays(route, intersections){
 	var deferred = $.Deferred();
-	var enrichedRoute = new Array();
+	var enrichedRoute = [];
 	var selectedPois = getSelectedRoutingElements();
-	getOrientationPoints(route, selectedPois).done(function(){
+	getOrientationPoints(route, selectedPois, intersections).done(function(){
+		console.log(orientationContent);
 		$.each(route, function(index, coordinate){
 			if(index <= (route.length-2)){
 				var nextCoordinate = route[index + 1];
@@ -16,11 +17,9 @@ function enricheWays(route){
 				var poisInRightStreetSegment = getPointsInBuffer(sideBuffers[1], orientationContent,  coordinate.lat,coordinate.lon, coordinate.distance);
 				poisInRightStreetSegment.sort(distanceSort);
 				
-				console.log(poisInLeftStreetSegment);
-				
-				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, coordinate.way.tags, poisInLeftStreetSegment, poisInRightStreetSegment));
+				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction,  coordinate.lat,coordinate.lon,coordinate.way.tags, poisInLeftStreetSegment, poisInRightStreetSegment));
 			}
-			else if(index == (route.length-1)){
+			else if(index === (route.length-1)){
 				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, "", "", ""));
 				deferred.resolve(enrichedRoute);
 			}
@@ -30,9 +29,11 @@ function enricheWays(route){
 	return deferred;
 	
 }
-function finalElement(distance,direction,tags,opsLeft, opsRight){
+function finalElement(distance,direction,lat,lon,tags,opsLeft, opsRight){
 	this.distance = distance;
 	this.direction = direction;
+	this.lat = lat;
+	this.lon = lon;
 	this.tags = tags;
 	this.opsLeft = opsLeft;
 	this.opsRight = opsRight;
@@ -44,7 +45,7 @@ function orientationEntry(lat,lon,keyword, tags, distance){
 	this.tags = tags;
 	this.distance = distance;
 }
-function getOrientationPoints(route,selectedPoints){
+function getOrientationPoints(route,selectedPoints, intersections){
 	var deferred = $.Deferred();
 	var counter = selectedPoints.length;
 	console.log(route);
@@ -56,21 +57,28 @@ function getOrientationPoints(route,selectedPoints){
 		$.each(selectedPoints, function(i, keyword) {
 			//if searching for trees
 			if((keyword == "natural=tree") &&( bool) ){
-				console.log("we are in zurich")
 				findTreeStreet(bbox).done(function(data){
 					counter--;
 					console.log(data);
 					orientationContent.push(new orientationEntry(data.lat, data.lon, keyword, data.tags));
 					if(counter == 0){
-						deferred.resolve("");
+						deferred.resolve();
 					}
 				});
-			}else{		
-				console.log("searching for " + keyword);	
+			}else if(keyword==="intersections"){
+				$.each(intersections, function(index, isec){
+					orientationContent.push(new orientationEntry(isec.lat, isec.lon, isec.keyword, isec.tags));
+				});
+				counter--;
+				if(counter == 0){
+					deferred.resolve();
+				}
+			}
+			else{		
 				getPoisForKeyWord(bbox, keyword).done(function(){
 					counter--;
 					if(counter == 0){
-						deferred.resolve("");
+						deferred.resolve();
 					}
 				});
 			}
@@ -131,7 +139,6 @@ function getPoisForKeyWord(bbox, keyWord){
 			else{
 				deferred.resolve("0");
 			}
-			
 		},
 	});
 	return deferred;
@@ -153,6 +160,7 @@ function getPointsInBuffer(buffer, selPoi, lat,lon, distance) {
 	var testx, testy;
 	var poisInStreetBuffer = [];
 	for ( var k = 0; k < selPoi.length; k++) {
+		//console.log(selPoi[k]);
 		testx = selPoi[k].lat;
 		testy = selPoi[k].lon;
 		var i, j, isInBuffer = false;
@@ -161,6 +169,7 @@ function getPointsInBuffer(buffer, selPoi, lat,lon, distance) {
 					&& (testx < (vertx[j] - vertx[i]) * (testy - verty[i])
 							/ (verty[j] - verty[i]) + vertx[i])) {
 				isInBuffer = !isInBuffer;
+				//console.log("changed");
 			}
 		}
 		if (isInBuffer == true) {

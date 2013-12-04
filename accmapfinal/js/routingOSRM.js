@@ -29,8 +29,8 @@ function routeOSRM(lat1, lon1,lat2, lon2) {
 }
 function interpreteOSRMRoute(data){
 	console.log("interpreting osrm route");
+	var ajaxcounter = data.length-1;
 	$.each(data, function(indexCoord, coord){
-		console.log(coord.lat + "," + coord.lon);
 		searchOverpassForCoords(coord,'way["highway"]').done(function(allPathsForCoord){
 			var smallestDist;
 			var nearestNode;
@@ -48,22 +48,22 @@ function interpreteOSRMRoute(data){
 							nearestNode = node;
 						}
 					}
-					if((indexNodes == (path.nodes.length-1)) && (indexPath == (allPathsForCoord.length-1))){
-						var newWayMatch = new coordWayMatch(indexCoord,path.wayId, coord.lat, coord.lon,nearestNode.id,path.tags);
+					if((indexNodes === (path.nodes.length-1)) && (indexPath === (allPathsForCoord.length-1))){
+							var newWayMatch = new coordWayMatch(indexCoord,path.wayId, coord.lat, coord.lon,nearestNode.id,path.tags);
 							waysOfRoute.push(newWayMatch);
-							if(indexCoord == (data.length-1)){
-								checkRouteOSRM();
-							}
 					}
 					
 					
 				});
 				
 			});
-			
-		
+			ajaxcounter--;
+			if(ajaxcounter === 1){
+				checkRouteOSRM();
+			}
 		});
-	});
+		
+});
 	
 	
 }

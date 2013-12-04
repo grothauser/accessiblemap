@@ -1,5 +1,4 @@
-
-<!DOCTYPE html>
+<HTML>
 	<html>
 		<head>
 			<meta charset="UTF-8">
@@ -13,24 +12,18 @@
 			<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
 			<script src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
 
-			<script type="text/javascript" src="js/streetView.js"></script>
-			<script type="text/javascript" src="js/options.js"></script>
-			<script type="text/javascript" src="js/compass.js"></script>
-			<script type="text/javascript" src="js/routing.js"></script>
-			<script type="text/javascript" src="js/pageInit.js"></script>
-			<script type="text/javascript" src="js/routingYOURS.js"></script>
-			<script type="text/javascript" src="js/routingOSRM.js"></script>
-			<script type="text/javascript" src="js/treesInStreet.js"></script>
-			<script type="text/javascript" src="js/dictionary.js"></script>
+			<script type="text/javascript" src="scripts/streetView.js"></script>
+			<script type="text/javascript" src="scripts/options.js"></script>
+			<script type="text/javascript" src="scripts/compass.js"></script>
+			<script type="text/javascript" src="scripts/routing.js"></script>
+			<script type="text/javascript" src="scripts/pageInit.js"></script>
+			<script type="text/javascript" src="scripts/routingYOURS.js"></script>
 			<script type="text/javascript" src="lib/javascript.js"></script>
 			<script type="text/javascript" src="lib/javascript.util.js"></script>
 			<script type="text/javascript" src="lib/jsts.js" ></script>
-			<script type="text/javascript" src="js/wayInfo.js" ></script>
 			<script type="text/javascript">
 				var wayPerCord = new Array();
 				initPage();
-				var locatedLat, locatedLon;
-		
 			</script>
 
 		</head>
@@ -48,7 +41,9 @@
 					</div>
 					<div class="ui-grid-a" >
 						<div  class="ui-block-a" >
-							<p id="locationOutput"></p>
+							<p id="locationOutput">
+								Klusstrasse, Hirslanden, Kreis 7, Zürich, Bezirk Zürich, Zurich, 8032, Switzerland
+							</p>
 						</div>
 						<div class="ui-block-b" id="buttonblock">
 							<a href="#" onClick="getGPSLocation()" data-role="button" data-mini="true">Aktualisieren</a>
@@ -62,7 +57,7 @@
 								<h3>Umgebungsinhalte</h3>
 							</div>
 							<div class="ui-block-b">
-								<a href="#" onClick="getStreetView()" data-role="button" data-mini="true">Ausgeben</a>
+								<input type="button" onclick="getStreetView();"  data-mini="true" value="Ausgeben"/>
 							</div>
 						</div><!-- /grid-a -->
 					</div>
@@ -75,32 +70,26 @@
 								<div data-role="fieldcontain">
 									<fieldset data-role="controlgroup" data-mini="true">
 
-										<input type="checkbox" id="amenity=waste_basket" class="custom" name="op" />
-										<label for="amenity=waste_basket">Abfalleimer</label>
+										<input type="checkbox" id="waste_basket" class="custom" />
+										<label for="waste_basket">Abfalleimer</label>
 
-										<input type="checkbox" id="natural=tree" class="custom" name="op" checked="checked" />
-										<label for="natural=tree">Bäume</label>
+										<input type="checkbox" id="tree" class="custom" checked="checked" />
+										<label for="tree">Bäume</label>
 
-										<input type="checkbox"  id="amenity=fountain" name="op" class="custom"/>
-										<label for="amenity=fountain" >Brunnen</label>
+										<input type="checkbox"  id="fountain" class="custom"/>
+										<label for="fountain" >Brunnen</label>
 
-										<input type="checkbox"  id="amenity=waste_disposal"  name="op" class="custom"/>
-										<label for="amenity=waste_disposal" >Container</label>
+										<input type="checkbox"  id="waste_disposal"  class="custom"/>
+										<label for="waste_disposal" >Container</label>
 
-										<input type="checkbox"  id="highway=crossing" name="op"  class="custom" />
-										<label for="highway=crossing" >Fussgängerstreifen</label>
+										<input type="checkbox"  id="crossing"  class="custom" />
+										<label for="crossing" >Fussgängerstreifen</label>
 
-										<input type="checkbox"  id="amenity=hydrant" name="op"  class="custom"/>
-										<label for="amenity=hydrant" >Hydrante</label>
-										
-										<input type="checkbox" id="highway =trafficsignals" class="custom" name="op" checked="checked"/>
-										<label for="highway =trafficsignals">Lichtisgnale</label>
-										
-										<input type="checkbox" id="intersections" class="custom" name="op" checked="checked"/>
-										<label for="intersections" >Kreuzungen</label>
+										<input type="checkbox"  id="hydrant"  class="custom"/>
+										<label for="hydrant" >Hydrante</label>
 
-										<input type="checkbox" id="amenity =bench" class="custom" name="op" checked="checked"/>
-										<label for="amenity =bench" >Sitzbänke</label>
+										<input type="checkbox" id="bench" class="custom" checked="checked"/>
+										<label for="bench" >Sitzbänke</label>
 
 									</fieldset>
 								</div><!-- /fieldcontain -->
@@ -113,7 +102,7 @@
 								<div data-role="fieldcontain">
 									<fieldset data-role="controlgroup" data-mini="true">
 
-										<input type="checkbox" id="restaurant" checked="checked"/>
+										<input type="checkbox" data-mini="true" id="restaurant" class="custom" checked="checked"/>
 										<label for="restaurant" >Restaurants</label>
 
 										<input type="checkbox" id="bar"/>
@@ -123,7 +112,7 @@
 										<label for="pub" >Pubs</label>
 
 										<input type="checkbox" id="cafe"/>
-										<label for="cafe" >Cafés</label>
+										<label for="cafe" >CafÃƒÂ©s</label>
 
 										<input type="checkbox" id="ice_cream"/>
 										<label for="ice_cream" >Gelaterias</label>
@@ -258,7 +247,7 @@
 						</p>
 
 					</form>
-					<a href="#" onClick="getStreetView()" data-role="button" data-mini="true">Umgebung ausgeben</a>
+					<a href="/pages/streetViewLeft.html" onClick="getStreetView()" data-role="button" data-mini="true">Umgebung ausgeben</a>
 
 				</div>
 
@@ -297,7 +286,7 @@
 				<div id="contentDialog" data-role="content" >
 					<div data-role="fieldcontain">
 						<label for="street" id="lblStreet">Strasse:</label>
-						<input type="text" name="name" id="street" value="Seequai"  />
+						<input type="text" name="name" id="street" value="Schulstrasse"  />
 					</div>
 					<div class="ui-grid-a">
 						<div  class="ui-block-a" >
@@ -322,147 +311,13 @@
 				<div class="ui-grid-a" >
 					<div  class="ui-block-a" >
 						<a href="#" id="selectLocation" data-role="button" data-mini="true" >Übernehmen</a>
-
+					
 					</div>
 					<div class="ui-block-b">
 						<a href="#" data-rel="back" data-role="button" data-mini="true">Abbrechen</a>
 					</div>
 				</div>
 			</div><!-- /footer -->
-
-			<!-- page streetView-->
-			<div data-role="page" id="streetViewLeft" data-theme="c">
-				<!-- header -->
-				<div data-role="header" data-position="fixed" class="ui-bar-a"data-theme="a"  data-tap-toggle="false">
-					<a href="#location" data-icon="arrow-l"  data-rel="back" class="ui-btn-left">Zurück</a>
-					<h1>Accessible Map</h1>
-
-					<div class="ui-grid-a" >
-						<div  class="ui-block-a" >
-							<h3>Linke Strassenseite</h3>
-						</div>
-						<div  class="ui-block-b" >
-							<a href="#streetViewRight" data-icon="arrow-r"  data-role="button">rechte Seite</a>
-						</div>
-						
-					
-				
-				</div>
-				</div>
-				<!--/header -->
-
-				<!-- content -->
-				<a href="#" data-icon="refresh" onClick="refreshStreetView();" data-role="button" >Ansicht aktualisieren</a>
-				<div id="streetViewContentLeft" data-role="content" >
-					<div data-role="collapsible-set" data-theme="c" data-content-theme="d">
-						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
-							<h4>Orientierungspunkte</h4>
-								<h3>Vor Ihnen</h3>
-							<div id="inFrontLeft">
-								<ul class="poi-list" id="frontleftlist"></ul>
-							</div>
-
-								<h3>Hinter Ihnen</h3>
-							<div id="inBackLeft">
-								<ul class="poi-list" id="backleftlist"></ul>
-							</div>
-						</div>
-						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
-							<h4>POIs im Umkreis</h4>
-
-							<div id="aroundLeft"></div>
-						</div>
-					</div>
-
-				</div><!--/content -->
-
-				<!-- footer -->
-				<div data-role="footer" class="ui-footer" data-position="fixed" data-tap-toggle="false" >
-					<div data-role="navbar" data-iconpos="bottom"  >
-						<ul>
-							<li>
-								<a href="#location" data-transition="none" data-role="button" data-icon="marker" class="ui-btn-active ui-state-persist">Standort</a>
-							</li>
-							<li>
-								<a href="#routing" id="routingbuttonLeft" data-transition="none" data-role="button" data-icon="arrow-u" >Routing</a>
-							</li>
-							<li>
-								<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
-							</li>
-							<li>
-								<a href="#info" data-transition="none" data-role="button" data-icon="info" >Info</a>
-							</li>
-						</ul>
-					</div><!-- /navbar -->
-				</div><!-- /footer -->
-			</div><!-- page-->
-
-			<!-- page streetView-->
-			<div data-role="page" id="streetViewRight" data-theme="c">
-				<!-- header -->
-				<div data-role="header" data-position="fixed" class="ui-bar-a" data-theme="a"  data-tap-toggle="false">
-					<a href="#location" data-icon="arrow-l"  data-rel="back" class="ui-btn-left">Zurück</a>
-					<h1>Accessible Map</h1>
-					<div class="ui-grid-a" >
-						<div  class="ui-block-a" >
-							<h3>Rechte Strassenseite</h3>
-						</div>
-						<div  class="ui-block-b" >
-							<a href="#streetViewLeft" data-icon="arrow-r"  data-role="button">linke Seite</a>
-						</div>
-						
-					
-				
-				</div>
-
-				</div>
-				<!--/header -->
-
-				<!-- content -->
-				<a href="#" data-icon="refresh" onClick="refreshStreetView();" data-role="button" >Ansicht aktualisieren</a>
-				
-				<div id="streetViewContentRight" data-role="content" >
-					<div data-role="collapsible-set" data-theme="c" data-content-theme="d">
-						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
-							<h4>Orientierungspunkte </h4>
-								<h3>Vor Ihnen</h3>
-							<div id="inFrontRight">
-								<ul class="poi-list" id="frontrightlist"></ul>
-							</div>
-
-								<h3>Hinter Ihnen</h3>
-							<div id="inBackRight">
-								<ul class="poi-list" id="backrightlist"></ul>
-							</div>
-						</div>
-						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
-							<h4>POIs im Umkreis</h4>
-
-							<div id="aroundRight"></div>
-						</div>
-					</div>
-				</div><!--/content -->
-
-				<!-- footer -->
-				<div data-role="footer" class="ui-footer" data-position="fixed" data-tap-toggle="false" >
-					<div data-role="navbar" data-iconpos="bottom"  >
-						<ul>
-							<li>
-								<a href="#location" data-transition="none" data-role="button" data-icon="marker" class="ui-btn-active ui-state-persist">Standort</a>
-							</li>
-							<li>
-								<a href="#routing" id="routingbuttonRight" data-transition="none" data-role="button" data-icon="arrow-u" >Routing</a>
-							</li>
-							<li>
-								<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
-							</li>
-							<li>
-								<a href="#info" data-transition="none" data-role="button" data-icon="info" >Info</a>
-							</li>
-						</ul>
-					</div><!-- /navbar -->
-				</div><!-- /footer -->
-			</div><!-- page-->
 
 			<!-- page routing-->
 			<div data-role="page" id="routing" data-theme="c">
@@ -471,29 +326,46 @@
 					<a href="#location" data-icon="arrow-l"  data-rel="back" class="ui-btn-left">Zurück</a>
 					<h1>Accessible Map</h1>
 					<h2>Routing</h2>
-						</div>
+					<a href="#" data-role="button" onclick="routeOSRM();">Testroute</a>
+				</div>
 				<!--/header -->
 
 				<!-- content -->
 				<div id="contentRouting" data-role="content" >
 
-					<h3 id="titleroutingleft">Wählen Sie einen POI in der Umgebungsausgabe und lassen Sie sich dorthin navigieren.</h3>
-					<a href="#" data-icon="refresh" onClick="refreshRoute();" data-role="button" >Route aktualisieren</a>
-					<div class="ui-bar-c"  >
-
-						<div class="ui-grid-a">
-							<div class="ui-block-a">
-								<h3>Linke Strassenseite</h3>
-								
-							</div>
-							<div class="ui-block-b">
-								<a href="#routingRight" data-icon="arrow-r" data-role="button" data-mini="true">zeige rechte Seite</a>
-							</div>
-						</div><!-- /grid-a -->
+					<h1>Route von <span id="routeFrom"></span> nach <span id="routeTo"></span> Hegibach</h1>
+					<div class="ui-bar-c" data-theme="c" >
+						<h3>Linke Strassenseite</h3>
 					</div>
-					<div id="routingDirections">
+					<div data-role="collapsible-set" data-theme="c" data-content-theme="d">
+						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
+							<h4>1. Kapfstrasse für 10m folgen, dann links abbiegen</h4>
+							<ul class="poi-list">
+								<li>
+									Tramhaltestelle nach 2m
+								</li>
+							</ul>
 
+							<p class="streetInfo">
+								Belag: Asphalt
+								<br>
+								Tempo: 50 kmh
+							</p>
+						</div>
+
+						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
+							<h4>2. Bucheggweg für 6m folgen, dann leicht links abbiegen.</h4>
+							<ul class="poi-list">
+								<li>
+									Bushaltestelle nach 5m
+								</li>
+							</ul>
+							<p class="streetInfo">
+								<b>Belag:</b> Kies
+							</p>
+						</div>
 					</div>
+
 				</div><!--/content -->
 
 				<!-- footer -->
@@ -522,32 +394,48 @@
 			<div data-role="page" id="routingRight" data-theme="c">
 				<!-- header -->
 				<div data-role="header" data-position="fixed" class="ui-bar-a"data-theme="a"  data-tap-toggle="false">
-					
-					<h1>Accessible Map</h1>
 					<a href="#location" data-icon="arrow-l"  data-rel="back" class="ui-btn-left">Zurück</a>
+					<h1>Accessible Map</h1>
 					<h2>Routing</h2>
-					
+					<a href="#" data-role="button" onclick="routeOSRM();">Testroute</a>
 				</div>
 				<!--/header -->
 
 				<!-- content -->
 				<div id="contentRoutingRight" data-role="content" >
-						<h3 id="titleroutingright">Wählen Sie einen POI in der Umgebungsausgabe und lassen Sie sich dorthin navigieren.</h3>
-						<a href="#" data-icon="refresh" onClick="refreshRoute();"  data-role="button" >Route aktualisieren</a>
-				
-					<div class="ui-bar-c"  >
 
-						<div class="ui-grid-a">
-							<div class="ui-block-a">
-								<h3>Rechte Strassenseite</h3>
-							</div>
-							<div class="ui-block-b">
-								<a href="#routing" data-icon="arrow-l" data-role="button" data-mini="true">zeige linke Seite</a>
-							</div>
-						</div><!-- /grid-a -->
+					<h1>Route von Kapfsteig nach Restaurant Hegibach</h1>
+					<div class="ui-bar-c" data-theme="c" >
+						<h3>Rechte Strassenseite</h3>
 					</div>
-					
-					<div id="routingDirectionsRight"></div>
+					<div data-role="collapsible-set" data-theme="c" data-content-theme="d">
+						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
+							<h4>1. Kapfstrasse für 10m folgen, dann links abbiegen</h4>
+							<ul class="poi-list">
+								<li>
+									Tramhaltestelle nach 2m
+								</li>
+							</ul>
+
+							<p class="streetInfo">
+								Belag: Asphalt
+								<br>
+								Tempo: 50 kmh
+							</p>
+						</div>
+
+						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
+							<h4>2. Bucheggweg für 6m folgen, dann leicht links abbiegen.</h4>
+							<ul class="poi-list">
+								<li>
+									Bushaltestelle nach 5m
+								</li>
+							</ul>
+							<p class="streetInfo">
+								<b>Belag:</b> Kies
+							</p>
+						</div>
+					</div>
 
 				</div><!--/content -->
 
@@ -588,6 +476,38 @@
 				<div id="contentOptions" data-role="content" >
 
 					<div class="ui-bar-c" data-theme="c" >
+						<h3>Routing-Einstellungen</h3>
+					</div>
+					<p>
+						Beim Routing können Orientierungspunkte ausgegeben werden, welche in den 
+						jeweiligen Abschnitten der Route vorkommen.
+					</p>
+					<div data-role="fieldcontain">
+										<fieldset data-role="controlgroup" data-mini="true">
+											<input type="checkbox" id="waste_basket" class="custom" />
+											<label for="waste_basket">Abfalleimer</label>
+	
+											<input type="checkbox" id="tree" class="custom" checked="checked" />
+											<label for="tree">Bäume</label>
+	
+											<input type="checkbox"  id="fountain" class="custom"/>
+											<label for="fountain" >Brunnen</label>
+	
+											<input type="checkbox"  id="waste_disposal"  class="custom"/>
+											<label for="waste_disposal" >Container</label>
+	
+											<input type="checkbox"  id="crossing"  class="custom" />
+											<label for="crossing" >Fussgängerstreifen</label>
+	
+											<input type="checkbox"  id="hydrant"  class="custom"/>
+											<label for="hydrant" >Hydrante</label>
+	
+											<input type="checkbox" id="bench" class="custom" checked="checked"/>
+											<label for="bench" >Sitzbänke</label>
+	
+										</fieldset>
+					</div><!-- /fieldcontain -->
+					<div class="ui-bar-c" data-theme="c" >
 						<h3>Umkreisradius</h3>
 					</div>
 					<p>
@@ -598,7 +518,6 @@
 						<label for="select-choice-radius" class="select">Radius:</label>
 
 						<select name="select-choice-radius" id="select-choice-radius" onchange="saveRadius(this);">
-							<option value="200">200 Meter</option>
 							<option value="500">500 Meter</option>
 							<option value="1000">1000 Meter</option>
 							<option value="1500">1500 Meter</option>
@@ -645,15 +564,15 @@
 
 				<!-- footer -->
 				<div data-role="footer" class="ui-footer" data-position="fixed" data-tap-toggle="false" >
-					<div class="ui-grid-a" >
-						<div  class="ui-block-a" >
-							<input type="button" value="Übernehmen" onClick="setManualLocation();"/>
-						</div>
-						<div class="ui-block-b">
-							<a href="#" data-rel="back" data-role="button" data-mini="true">Abbrechen</a>
-						</div>
+				<div class="ui-grid-a" >
+					<div  class="ui-block-a" >
+						<input type="button" value="Übernehmen" onClick="setManualLocation();"/>
 					</div>
-				</div><!-- /page -->
-			</div>
+					<div class="ui-block-b">
+						<a href="#" data-rel="back" data-role="button" data-mini="true">Abbrechen</a>
+					</div>
+				</div>
+			</div><!-- /page -->
+		</div>
 		</body>
 	</html>

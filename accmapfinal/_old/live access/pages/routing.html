@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta http-equiv="content-type" content="text/html" charset="UTF-8">
+		<title>Routing</title>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+		<script type='text/javascript'charset="utf-8">var wayPerCord = [];</script>
+		<script type='text/javascript'charset="utf-8">var treeCoords = [];</script>
+		<script  type="text/javascript" charset="utf-8"  src="../scripts/routingYOURS.js"></script>
+		<script  type="text/javascript" charset="utf-8" src="../scripts/routing.js"></script>
+		<script  type="text/javascript" charset="utf-8" src="../scripts/streetView.js"></script>
+		<script  type="text/javascript" charset="utf-8" src="../scripts/compass.js"></script>
+		<script  type="text/javascript" charset="utf-8" src="../scripts/treesInStreet.js"></script>
+		<script  type="text/javascript" charset="utf-8" src="../scripts/roadworks.js"></script>
+		<script  type="text/javascript" charset="utf-8" src="../scripts/transportStops.js"></script>
+		<script  type="text/javascript" charset="utf-8" src="../lib/javascript.js"></script>
+		<script  type="text/javascript" charset="utf-8" src="../lib/jsts.js"></script>
+		
+	</head>
+	<body>
+		<form id="coordinates">
+		<h2>Geben Sie die Start und Zielkoordinaten ein</h2>
+		Start:<input type="text" id="from" value="47.42007539282804, 9.381869584321976"></br>
+		Ziel:<input type="text" id="to" value="47.42062346891752, 9.382258504629135"></br>
+		</form>
+		<form id="selectionRouting">
+		<h4> Wählen Sie Orientierungspunkte </h4> Strassenbreite: 
+			<input type="text" id="insertRadiusBoxRouting" value="0.01">km </br>
+			<input type="checkbox" name="natural = tree" checked="checked" value="Bäume"/>
+			Bäume </br>
+			<input type="checkbox" name="amenity = bench" value="Sitzbänke"/>
+			Sitzbänke</br>
+			<input type="checkbox" name="amenity = fountain" value="Brunnen"/>
+			Brunnen</br>
+			<input type="checkbox" name="amenity = waste_disposal" value="Container"/>
+			Container</br>
+			<input type="checkbox" name="highway = traffic_signals" value="Lichtsignale"/>
+			Lichtsignale</br>
+			<input type="checkbox" name="amenity = waste_basket" value="Abfalleimer"/>
+			Abfalleimer</br>
+			<input type="checkbox" name="highway = crossing" value="Fussgängerstreifen"/>
+			Fussgängerstreifen</br>
+			<input type="checkbox" name="amenity = hydrant" value="Hydrant"/>
+			Hydrant</br> 
+			<input type="checkbox" name="highway = construction" value="Baustellen"/>
+			Baustellen</br>
+			<input type="checkbox" name="transportStop" value="Haltestellen"/>
+			Haltestellen</br>
+		</form>
+		<form id = "routingServiceSelection">
+		Routingdienst:</br>
+                <input type="radio" name="routingService" value="yours" checked="checked">YOURS</br>  
+                <input type="radio" name="routingService" value="zurich"> Routing Dienst Zürich</br>
+         </form>
+        <input type="button" value="Route berechnen" onclick="getRoute()">
+		<div id="routeOutput"></div>
+		<div id="streetsOutput"></div>
+	</body>
+	</html>

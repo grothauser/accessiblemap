@@ -1,10 +1,11 @@
 var lat, lon;
-var candidatesForManualSearch = new Array();
+var candidatesForManualSearch = [];
 var locatedWay, locatedWayId;
 var locationManual = false;
 var nodeCoords = [];
 var compassHeading;
-var streetViewContent = new Array();
+var streetViewContent = [];
+var wayVectors = [];
 
 function getGPSLocation() {
 	console.log('asking geolocation');
@@ -15,8 +16,8 @@ function getGPSLocation() {
 	};
 	function success(pos) {
 		var crd = pos.coords;
-		lat =47.22572;
-		lon =  8.81880
+		lat = 47.22540;
+		lon =  8.81807;
 	//	lat = crd.latitude;
 	//	lon = crd.longitude;
 		locatedLat = lat;
@@ -214,12 +215,6 @@ function getWayFromNominatim(street, number, plz, place) {
 	return deferred;
 }
 
-function intersection(streetA, streetB, intersectionNode){
-	this.streetA = streetA;
-	this.streetB = streetB;
-	this.intersectionNode = intersectionNode;
-}
-
 function streetViewEntry(id,lat,lon,name, clock, distance, tags){
 	this.id = id;
 	this.lat = lat;
@@ -271,15 +266,16 @@ function getStreetView() {
 
 }
 function getStreetContent(startentry,endentry){
-	var streetArray = new Array();
+	var streetArray = [];
 	streetArray.push(startentry);
 	streetArray.push(endentry);
 	
-	enricheWays(streetArray).done(function(enrichedStreet){
-		console.log(enrichedStreet);
-		
+	var intersections = findIntersections(wayVectors, locatedWay, lat, lon);
+	var warnings = getIsecWarnings(wayVectors);
+	intersections.sort(distanceSort);
+	
+	enricheWays(streetArray, intersections).done(function(enrichedStreet){
 		var selectedPois = getSelectedPois();
-		console.log(selectedPois);
 		var counter = selectedPois.length;
 		if(detectmob()){
 			console.log("on mobile");
@@ -328,7 +324,7 @@ function printOPS(finalroute,compval){
 	var segment = finalroute[0];
 	var clock;
 	$.each(segment.opsLeft, function(index, entry){
-		clock = getClock(calcAll(entry.lat, entry.lon, locatedLat,locatedLon,compval));
+		clock = getClock(calcCompassBearing(entry.lat, entry.lon,locatedLat,locatedLon, compval));
 		if((clock > 9)||(clock<3)) {
 			$('#frontleftlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
 		}else{
@@ -336,7 +332,7 @@ function printOPS(finalroute,compval){
 		}
 		});
 	$.each(segment.opsRight, function(index, entry){
-		clock = getClock(calcAll(entry.lat, entry.lon, locatedLat,locatedLon,compval));
+		clock = getClock(calcCompassBearing( entry.lat, entry.lon,locatedLat,locatedLon,compval));
 		if((clock > 9)||(clock<3)) {
 			$('#frontrightlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
 		}else{
@@ -428,7 +424,6 @@ function getPOIs(keyWord,compassHeading) {
 	
 	if(keyWord.indexOf("=")==-1){
 		keyWord = "amenity="+keyWord;
-		console.log(keyWord);
 	}
 	$.ajax({
 		type : 'GET',
@@ -446,12 +441,11 @@ function getPOIs(keyWord,compassHeading) {
 						if (distance <= radius) {
 							var name = getKindOfPoi(keyWord.split("=")[1]);
 							distance = Math.round(1000 * distance);
-							var clock = getClock(calcAll(poi.lat,poi.lon,lat,lon, compassHeading));
+							var clock = getClock(calcCompassBearing(poi.lat,poi.lon,lat,lon, compassHeading));
 							var entry = new streetViewEntry(poi.id, poi.lat, poi.lon, name, clock,distance,poi.tags);
 							streetViewContent.push(entry);
 						}
 						if(i == (parameters.elements.length-1)){
-							console.log("done for " + keyWord);
 							deferred.resolve();
 						}
 				});
@@ -578,7 +572,6 @@ function point(x,y){
 }
 
 function findWays(opWays, opNodes, lat, lon){
-	var wayVectors = new Array();
 	$.each(opWays, function(i, overpassResult){
 		var nodes = new Array();
 		//get all nodes of way
@@ -593,15 +586,13 @@ function findWays(opWays, opNodes, lat, lon){
 			}
 		});
 	});
-	return wayVectors;
 	
 }
-function findMatchingWay(wayVectors,lat,lon){
-	var deferred = $.Deferred();
+function findMatchingWay(lat,lon){
 	var pointA, segStart, segEnd; 
 	var smallestDist;
 	var nearestSegment;
-	var candidates = new Array();
+	var candidates = [];
 	var nextNode;
 	$.each(wayVectors, function(index, wayVec){
 		//for each wayVec.nodes
@@ -614,36 +605,30 @@ function findMatchingWay(wayVectors,lat,lon){
 					segStart = new point(node.x, node.y);
 					segEnd = new point(nextNode.x, nextNode.y);
 					var distToSegmentResult = distToSegment(pointA,segStart,segEnd);
-//					console.log(distToSegmentResult + " for " + pointA.x + "," + pointA.y + " to seg with start: " + 
-//							segStart.x + " ," + segStart.y + " and end " + 
-//							segEnd.x + " ," + segEnd.y + " of way " + wayVec.wayId);
 					if(index === 0){
 						 smallestDist = distToSegmentResult;
 						 nearestSegment = new distSegmentEntry(node.x, node.y,nextNode.x, nextNode.y,lat,lon, distToSegmentResult, wayVec.wayId, wayVec);
 						 candidates.push(nearestSegment);
 					}
 					if(distToSegmentResult <= smallestDist){
-							 smallestDist = distToSegmentResult;
-							 nearestSegment = new distSegmentEntry(node.x, node.y,nextNode.x, nextNode.y,lat,lon, distToSegmentResult, wayVec.wayId, wayVec);
-							 candidates.push(nearestSegment);
-					}
-				}
-				if((i==( wayVec.nodes.length-1)) && (index == (wayVectors.length-1))){
-					if(typeof nearestSegment != "undefined"){
-						console.log(candidates);
-						deferred.resolve(nearestSegment);
-					}else{
-						console.log("no nearestsegment found");
-						deferred.resolve("undefined");
+						 smallestDist = distToSegmentResult;
+						 nearestSegment = new distSegmentEntry(node.x, node.y,nextNode.x, nextNode.y,lat,lon, distToSegmentResult, wayVec.wayId, wayVec);
+						 candidates.push(nearestSegment);
 					}
 				}
 			});
 		}else
 			if(index == wayVectors.length-1){
-				deferred.resolve();
+				return;
 			}
 	});
-	return deferred;
+	if(typeof nearestSegment != "undefined"){
+		console.log(candidates);
+		return nearestSegment;
+	}else{
+		console.log("no nearestsegment found");
+		return "undefined";
+	}
 }
 function getNodeInformation(nodeId) {
 	var deferred = $.Deferred();
@@ -676,7 +661,7 @@ function getNodeInfo(nodeId, allNodes) {
 
 function searchOverpassForLocationCoords(lat, lon, keyWord) {
 	var deferred = $.Deferred();
-	var bbox = getBbox(lat, lon, "50");
+	var bbox = getBbox(lat, lon, "100");
 	var ways = [];
 	var nodes = [];
 	$.ajax({
@@ -692,22 +677,21 @@ function searchOverpassForLocationCoords(lat, lon, keyWord) {
 		// Handle results over to determination
 		success : function(overpassResult) {
 			$.each(overpassResult.elements, function(index, result){
-				if(result.type == "way")
+				if(result.type == "way"){
 					ways.push(result);
-				else
-					nodes.push(result);
-			});
-			var wayVectors = findWays(ways, nodes, lat, lon);
-			findMatchingWay(wayVectors,lat,lon).done(function(way){
-				if(typeof way != "undefined"){
-					findIntersections(wayVectors, way, lat, lon);
-					getIsecWarnings(wayVectors);
-					deferred.resolve(way);
-				}else{
-					console.log("kreugzungsnode");
-					deferred.resolve("an kreuzung");
 				}
-			});			
+				else{
+					nodes.push(result);
+				}
+			});
+			findWays(ways, nodes, lat, lon);
+			var way = findMatchingWay(lat,lon)
+			if(typeof way != "undefined"){
+				deferred.resolve(way);
+			}else{
+				console.log("kreugzungsnode");
+				deferred.resolve("an kreuzung");
+			}
 		}
 	});
 	return deferred;
@@ -744,11 +728,10 @@ function getSide(compass, startPoint, endPoint, page){
 	var bool = isLeft(startPoint.lat, startPoint.lon, endPoint.lat, endPoint.lon, lat, lon);
 	console.log("isLeft = "+bool);
 	
-	if(page = "routing"){
+	if(page === "routing"){
 		if(bool){
 			$.mobile.changePage($("#routing"), "none");
 		}else{
-			//change to view on right side
 			$.mobile.changePage($("#routingRight"), "none");
 		}
 	}else{
@@ -762,51 +745,72 @@ function getSide(compass, startPoint, endPoint, page){
 }
 
 function findIntersections(wayVectors,street,lat,lon) {
-	console.log("searching intersections " + wayVectors.length);
-	console.log(street);
 	var intersections = [];
 	var isec;
 	$.each(wayVectors, function(i, element){
 		if(element.wayId!==street.wayId){
 			isec = getIntersection(element.nodes,street);
 			if (isec != -1) {
-				var intersectionEntry = new intersection(element.wayId, street.wayId, isec);
-				console.log("created intersection " + element.wayId +" "+ street.wayId);
-				if (!(isAlreadyInIntersections(intersectionEntry, intersections))) {
+				var intersectionEntry = new intersection(isec.x, isec.y, element.tags, street.way.tags, element.wayId, street.wayId );
+				var alreadyIn = isAlreadyInIntersections(intersectionEntry, intersections);
+				if (alreadyIn === -1) {
 					intersections.push(intersectionEntry);
 				}
 				else{
-					console.log("already in");
-					console.log(intersectionEntry);
-					console.log(intersections)
+					intersections = addWay(intersectionEntry, intersections, alreadyIn);
 				}
 			}
 		}
 	});
 	console.log(intersections);
+	return intersections;
+}
+
+function addWay(isecEntry, intersections, index){
+	var newIntersections = [];
+	newIntersections = newIntersections.concat(intersections);
+	
+	for(var k=0; k<intersections[index].wayIds.length;k++){
+		if(isecEntry.wayIds[0]!==intersections[index].wayIds[k]){
+			newIntersections[index].wayIds.push(isecEntry.wayIds[0]);
+			break;
+		}else if(isecEntry.wayIds[1]!==intersections[index].wayIds[k]){
+			newIntersections[index].wayIds.push(isecEntry.wayIds[1]);
+			break;
+		}
+	}
+	return newIntersections;
 }
 function getIntersection(nodeArray, way) {
 	var isec = -1;
-	for ( var k = 0; k < nodeArray.length; k++) {
-		if ((nodeArray[k].x === way.startlat) && (nodeArray[k].y === way.startlon)||(nodeArray[k].x === way.endLat) && (nodeArray[k].y === way.endLon)) {
-			console.log(nodeArray[k]);
-			isec = nodeArray[k];
+	$.each(nodeArray, function(index, node){
+		if ((node.x === way.startlat) && (node.y === way.startlon)||(node.x === way.endLat) && (node.y === way.endLon)) {
+			isec = node;
 		}
-	}
+	});
 	return isec;
 }
 function isAlreadyInIntersections(intersection, intersections) {
-	for ( var i = 0; i < intersections.length; i++) {
-		if ((intersections[i].node.x === intersection.node.x) && (intersections[i].node.x === intersection.node.x)) {
-			return true;
+	var alreadyIn = -1;
+	$.each(intersections, function(i, isec){
+		if ((isec.lat === intersection.lat) && (isec.lon === intersection.lon)){
+			alreadyIn = i;	
 		}
-	}
-	return false;
+	});
+	return alreadyIn;
 }
-function intersection(streetA, streetB, node) {
-	this.streetA = streetA;
-	this.streetB = streetB;
-	this.node = node;
+function intersection(lat, lon, wayTagsA, wayTagsB, wayIdA, wayIdB) {
+	var ways = [];
+	var wayIds = [];
+	this.lat = lat;
+	this.lon = lon;
+	ways.push(getTypeOfWay(wayTagsA));
+	ways.push(getTypeOfWay(wayTagsB));
+	this.tags = ways;
+	this.keyword = "intersection";
+	wayIds.push(wayIdA);
+	wayIds.push(wayIdB);
+	this.wayIds = wayIds;
 }
 
 function getIsecWarnings(wayVectors){
@@ -814,20 +818,18 @@ function getIsecWarnings(wayVectors){
 	$.each(wayVectors, function(index, way){
 		for(var i=index+1; i<wayVectors.length; i++){
 			var nextWay =  wayVectors[i];
-			warnings.push(testOverlap(way, nextWay));
+			var warning = testOverlap(way, nextWay);
+			if(warning.length!==0)
+				warnings.push(warning);
 		}
 	});
-	if(warnings.length!==0){
-		console.log(warnings);
-		return warnings;
-	}
+	console.log("get IsecWarn");
+	console.log(warnings);
+	return warnings;
 }
 
 function testOverlap(wayA, wayB){
 	var warnings = [];
-	console.log("test for intersection");
-	console.log(wayA);
-	console.log(wayB);
 	for(var i=0; i<wayA.nodes.length-1; i++){
 		for(var k=0;k<wayB.nodes.length-1; k++){
 			var line1Start = wayA.nodes[i];
@@ -835,15 +837,12 @@ function testOverlap(wayA, wayB){
 			var line2Start = wayB.nodes[k];
 			var line2End = wayB.nodes[k+1];
 			
-			console.log("getOverlaps");
 			var warning = getOverlaps(line1Start.x,line1Start.y,line1End.x, line1End.y,line2Start.x,line2Start.y,line2End.x,line2End.y);
 			if(warning!==null){
-				console.log("gepusht");
-				warnings.push(new intersection(wayA, wayB, warning));
+				warnings.push(new intersection(warning.x, warning.y, wayA.tags, wayB.tags));
 			}
 		}
 	}
-	console.log(warnings);
 	return warnings;
 }
 
@@ -870,7 +869,6 @@ function getOverlaps(x1,y1,x2,y2, x3,y3,x4,y4){
 			var isecX = (parseFloat(x1)+wy*ux);
 			var isecY = (parseFloat(y1)+wy*uy);
 			//console.log(x1+", "+y1+" "+x2+", "+y2+" "+x3+", "+y3+" "+x4+", "+y4);
-			console.log("WARNING: intersection: "+isecX+", "+isecY);
 			return new point(isecX, isecY);
 		}
 	}

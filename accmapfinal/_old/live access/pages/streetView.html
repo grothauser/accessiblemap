@@ -1,0 +1,76 @@
+<html>
+	<head>
+		<title>Strassenansicht</title>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+		<script  type="text/javascript" src="../scripts/streetView.js"></script>
+		<script  type="text/javascript" src="../scripts/lang.de.js"></script>
+	</head>
+	<body>
+		<h2>Suche deinen Standort</h2>
+
+		<h3> Standort</h3>
+		<input type="button" onclick="getGPSLocation()" value="Standort auslesen" />
+		</br>
+		<input type="text" id="insertBox" value="47.374751,8.539721">
+		<input type="button" value="Standort angeben" onclick="getManualLocation()">
+		<p id='location'></p>
+		<h3>Auswahl</h3>
+		<form id="selection">
+			<h4> Orientierungspunkte </h4> Strassenbreite: 
+			<input type="text" id="insertRadiusBox" value="0.3">km </br>
+			<input type="checkbox" id="checkboxtrees" name="tree" checked="checked" value="Bäume"/>
+			Bäume</br>
+			<input type="checkbox" name="bench" checked="checked" value="Sitzbänke"/>
+			Sitzbänke</br>
+			<input type="checkbox" name="fountain" value="Brunnen"/>
+			Brunnen</br>
+			<input type="checkbox" name="waste_disposal" value="Container"/>
+			Container</br>
+			<input type="checkbox" name="waste_basket" value="Abfalleimer"/>
+			Abfalleimer</br>
+			<input type="checkbox" name="crossing" value="Fussgängerstreifen"/>
+			Fussgängerstreifen</br>
+			<input type="checkbox" name="hydrant" value="Hydrant"/>
+			Hydrant</br> <h4> POIs </h4>
+
+			<h5> Konsum </h5>
+			<input type="checkbox" name="restaurant" value="Restaurants"/>
+			Restaurants</br>
+			<input type="checkbox" name="bar" value="Bars"/>
+			Bars</br>
+			<input type="checkbox" name="pub" value="Pubs"/>
+			Pubs</br>
+			<input type="checkbox" name="cafe" value="Cafés"/>
+			Cafés</br>
+			<input type="checkbox" name="ice_cream" value="Gelateria"/>
+			Gelateria</br> <h5> Öffentliche Eintrichtungen </h5>
+			<input type="checkbox" name="library" value="Bibliotheken"/>Bibliotheken</br>
+			<input type="checkbox" name="school" value="Schulen"/>Schulen</br>
+			<input type="checkbox" name="kindergarten" value="Kindergärten"/>Kindergärten</br>
+			<input type="checkbox" name="university" value="Universitäten"/>Universitäten</br>
+			<input type="checkbox" name="toilets" value="Toiletten" checked="checked"/>Toiletten</br>
+			<input type="checkbox" name="telephone" value="Telefonzelle" checked="checked"/>Telefonzelle</br>
+			<input type="checkbox" name="recycling" value="Entsorgungsstellen"/>Entsorgungsstellen</br>
+			<input type="checkbox" name="post_office" value="Poststelle"/>Poststelle</br>
+			<input type="checkbox" name="post_box" value="Postkasten"/>Postkasten</br>
+			<input type="checkbox" name="police" value="Polizei"/>Polizei</br>
+			<input type="checkbox" name="fire_station" value="Feuerwehr"/>Feuerwehr</br>
+			<h5> Öffentlicher Verkehr </h5>
+			<input type="checkbox" name="bus_station" value="Busstation" checked="checked"/>Busstation</br>
+			<h5> Private Einrichtungen </h5>
+			<input type="checkbox" name="bank" value="Bank"/>Bank</br>
+			<input type="checkbox" name="atm" value="Geldautomaten"/>Geldautomaten</br>
+			<input type="checkbox" name="taxi" value="Taxistationen"/>Taxistationen</br>
+			<input type="checkbox" name="ferry_terminal" value="Fährstationen"/>Fährstationen</br>
+			<h5> Medizinisches </h5>
+			<input type="checkbox" name="pharmacy" value="Apotheken"/>Apotheken</br>
+			<input type="checkbox" name="doctor" value="Ärzte"/>Ärzte</br>
+			<input type="checkbox" name="veterinary" value="Tierarzt"/>Tierarzt</br>
+			<input type="checkbox" name="hospital" value="Krankenhaus"/>Krankenhaus</br>
+			<input type="checkbox" name="dentist" value="Zahnarzt"/>Zahnarzt</br>
+		</form>
+		<input type="button" onclick="getStreetView()" value="Starte Abfrage" />
+		<div id="output">
+		</div>
+	</body>
+</html>
