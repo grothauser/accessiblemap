@@ -1,6 +1,6 @@
 var coords = new Array();
 function routeOSRM(lat1, lon1,lat2, lon2) {
-
+	coords = new Array();
 	$.ajax({
 		url: "../js/proxy.php?url="
 			+ encodeURIComponent("http://routing.osm.ch/routed-foot/viaroute?loc="+lat1+","+lon1+"&loc="+lat2+","+lon2+"&output=gpx"),
@@ -28,6 +28,7 @@ function routeOSRM(lat1, lon1,lat2, lon2) {
 
 }
 function interpreteOSRMRoute(data){
+	waysOfRoute = [];
 	console.log("interpreting osrm route");
 	var ajaxcounter = data.length-1;
 	$.each(data, function(indexCoord, coord){

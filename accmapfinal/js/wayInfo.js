@@ -1,5 +1,6 @@
 var orientationContent = [];
 function enricheWays(route, intersections){
+	orientationContent = [];
 	var deferred = $.Deferred();
 	var enrichedRoute = [];
 	var selectedPois = getSelectedRoutingElements();
@@ -17,19 +18,58 @@ function enricheWays(route, intersections){
 				var poisInRightStreetSegment = getPointsInBuffer(sideBuffers[1], orientationContent,  coordinate.lat,coordinate.lon, coordinate.distance);
 				poisInRightStreetSegment.sort(distanceSort);
 				
-				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction,  coordinate.lat,coordinate.lon,coordinate.way.tags, poisInLeftStreetSegment, poisInRightStreetSegment));
+				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction,  coordinate.lat,coordinate.lon,coordinate.way.tags, poisInLeftStreetSegment, poisInRightStreetSegment,coordinate.way));
 			}
 			else if(index === (route.length-1)){
-				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, "", "", ""));
+				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, "", "", "",""));
 				deferred.resolve(enrichedRoute);
 			}
-			
 		});
 	});
 	return deferred;
-	
 }
-function finalElement(distance,direction,lat,lon,tags,opsLeft, opsRight){
+
+function enrichStreetWay(route, intersections, warnings, locLat, locLon){
+	var deferred = $.Deferred();
+	var enrichedRoute = [];
+	var selectedPois = getSelectedRoutingElements();
+	getOrientationPoints(route, selectedPois, intersections).done(function(){
+		var poisOnLeftSide = [];
+		var poisOnRightSide = [];
+		console.log(selectedPois);
+		//add intersections if selected
+		if($.inArray("intersections", selectedPois)!==-1){
+			$.each(intersections, function(index, isec){
+				var dist = calcDistance(locLat, locLon, isec.lat, isec.lon);
+				poisOnLeftSide.push(new orientationEntry(isec.lat, isec.lon, isec.keyword, isec.tags, dist));
+				poisOnRightSide.push(new orientationEntry(isec.lat, isec.lon, isec.keyword, isec.tags, dist));
+			});
+		}
+		//add warnings
+		if($.inArray("overlapwarnings", selectedPois)!==-1){
+			$.each(warnings, function(index, warn){
+				var dist = calcDistance(locLat, locLon, warn.lat, warn.lon);
+				poisOnLeftSide.push(new orientationEntry(warn.lat, warn.lon, warn.keyword, warn.tags, dist));
+				poisOnRightSide.push(new orientationEntry(warn.lat, warn.lon, warn.keyword, warn.tags, dist));
+			});
+		}
+		var degreesToNext = calcBearing(route[0].lat, route[0].lon,	route[1].lat, route[1].lon);
+		var sideBuffers = calculateSideBuffers(route[0].lat, route[0].lon, route[1].lat, route[1].lon, degreesToNext);
+		
+		var poisInLeftStreetSegment = getPointsInBuffer(sideBuffers[0], orientationContent, locLat, locLon, 300);
+		poisInLeftStreetSegment = poisOnLeftSide.concat(poisInLeftStreetSegment);
+		poisInLeftStreetSegment.sort(distanceSort);
+		
+		var poisInRightStreetSegment = getPointsInBuffer(sideBuffers[1], orientationContent,  locLat, locLon, 300);
+		poisInRightStreetSegment = poisOnRightSide.concat(poisInRightStreetSegment);
+		poisInRightStreetSegment.sort(distanceSort);
+		
+		enrichedRoute.push(new finalElement("", "", locLat, locLon, route[0].way.tags, poisInLeftStreetSegment, poisInRightStreetSegment));
+		deferred.resolve(enrichedRoute);
+	});
+	return deferred;
+}
+function finalElement(distance,direction,lat,lon,tags,opsLeft, opsRight,way){
 	this.distance = distance;
 	this.direction = direction;
 	this.lat = lat;
@@ -37,51 +77,66 @@ function finalElement(distance,direction,lat,lon,tags,opsLeft, opsRight){
 	this.tags = tags;
 	this.opsLeft = opsLeft;
 	this.opsRight = opsRight;
+	this.way = way;
 }
-function orientationEntry(lat,lon,keyword, tags, distance){
-	this.lat = lat;
-	this.lon = lon;
-	this.keyword = keyword;
-	this.tags = tags;
-	this.distance = distance;
-}
+
 function getOrientationPoints(route,selectedPoints, intersections){
 	var deferred = $.Deferred();
 	var counter = selectedPoints.length;
-	console.log(route);
 	var bbox = getMinMaxForRoute(route);
-	console.log(bbox[1] + " "+ bbox[0] + " " + bbox[3] + " " + bbox[2]);
+
 	isInZurich(route).done(function(bool){
-		
 		//for each selected point find the matching pois
 		$.each(selectedPoints, function(i, keyword) {
 			//if searching for trees
 			if((keyword == "natural=tree") &&( bool) ){
 				findTreeStreet(bbox).done(function(data){
 					counter--;
-					console.log(data);
 					orientationContent.push(new orientationEntry(data.lat, data.lon, keyword, data.tags));
-					if(counter == 0){
+					if(counter === 0){
 						deferred.resolve();
 					}
 				});
-			}else if(keyword==="intersections"){
-				$.each(intersections, function(index, isec){
-					orientationContent.push(new orientationEntry(isec.lat, isec.lon, isec.keyword, isec.tags));
+			}//Geändert
+			else if(keyword == "roadworks"){
+				getRoadworks(route).done(function(){
+					counter--;
+					if(counter === 0){
+						deferred.resolve();
+					}
 				});
-				counter--;
-				if(counter == 0){
-					deferred.resolve();
-				}
 			}
 			else{		
 				getPoisForKeyWord(bbox, keyword).done(function(){
 					counter--;
-					if(counter == 0){
+					if(counter === 0){
 						deferred.resolve();
 					}
 				});
 			}
+		});
+	});
+	return deferred;
+}
+
+function getRoadworks(route){
+	var deferred = $.Deferred();
+	$.each(route, function(index, coord){
+		console.log(coord.way.wayId);
+		$.ajax({
+			url: 'http://trobdb.hsr.ch/getTrafficObstruction?osmid='+coord.way.wayId,
+			type : 'GET',
+			dataType : 'jsonp',
+			error : function(data) {
+				console.error("error");
+				deferred.resolve();
+			},
+			success : function(data) {
+				console.log(data);
+				var entry = new orientationEntry(data.lat, data.lon, keyWord, data.tags);
+				orientationContent.push(entry);
+				deferred.resolve();
+			},
 		});
 	});
 	return deferred;
@@ -143,70 +198,11 @@ function getPoisForKeyWord(bbox, keyWord){
 	});
 	return deferred;
 }
-function orientationPoint(keyWord,tags,distance){
-	this.keyWord = keyWord;
+function orientationEntry(lat,lon,keyword, tags, distance){
+	this.lat = lat;
+	this.lon = lon;
+	this.keyword = keyword;
 	this.tags = tags;
 	this.distance = distance;
 }
 
-function getPointsInBuffer(buffer, selPoi, lat,lon, distance) {
-	var nvert = buffer.coordinates[0].length;
-	var vertx = [];
-	var verty = [];
-	for ( var i = 0; i < nvert; i++) {
-		vertx.push(buffer.coordinates[0][i][0]);
-		verty.push(buffer.coordinates[0][i][1]);
-	}
-	var testx, testy;
-	var poisInStreetBuffer = [];
-	for ( var k = 0; k < selPoi.length; k++) {
-		//console.log(selPoi[k]);
-		testx = selPoi[k].lat;
-		testy = selPoi[k].lon;
-		var i, j, isInBuffer = false;
-		for (i = 0, j = nvert - 1; i < nvert; j = i++) {
-			if (((verty[i] > testy) != (verty[j] > testy))
-					&& (testx < (vertx[j] - vertx[i]) * (testy - verty[i])
-							/ (verty[j] - verty[i]) + vertx[i])) {
-				isInBuffer = !isInBuffer;
-				//console.log("changed");
-			}
-		}
-		if (isInBuffer == true) {
-			var distToPoi = calcDistance(lat,lon,selPoi[k].lat,selPoi[k].lon);
-			if(distToPoi <= (distance) ){
-				poisInStreetBuffer.push(new orientationEntry(selPoi[k].lat, selPoi[k].lon,selPoi[k].keyword,selPoi[k].tags,distToPoi));
-			}
-		}
-	}
-	return poisInStreetBuffer;
-}
-
-function getMinMaxForRoute(route){
-	var bbox = new Array();
-	var minLon = route[0].lon;
-	var minLat = route[0].lat;
-	var maxLon = route[0].lon;
-	var maxLat = route[0].lat;
-	for(var i=0; i<route.length; i++){
-		if(route[i].lat < minLat){
-			minLat = route[i].lat;
-		}
-		if(route[i].lat > maxLat){
-			maxLat = route[i].lat;
-		}
-		if(route[i].lon < minLon){
-			minLon =route[i].lon;
-		}
-		if(route[i].lon > maxLon){
-			maxLon = route[i].lon;
-		}
-		if(i == (route.length-1)){
-			bbox.push(minLon);
-			bbox.push(minLat);
-			bbox.push(maxLon);
-			bbox.push(maxLat);
-			return bbox;
-		}	
-	}
-}

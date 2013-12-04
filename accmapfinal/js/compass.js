@@ -1,56 +1,36 @@
-
+//TODO: nicht jedesmal einen listener hinzufügen
 function checkCompass(){
 	var deferred = $.Deferred();
-	var alpha;
 	if(window.DeviceOrientationEvent) { 
 		window.setInterval(function(){
 		window.addEventListener('deviceorientation', function(event) {
 			//iOs
 			 if(event.webkitCompassHeading) {
-                 alpha = event.webkitCompassHeading;
                  deferred.resolve(event.webkitCompassHeading);
                }
-               //non iOS
+               //non iOS is the other way round
                else {
-            	  webkitAlpha = event.alpha;
-                  alpha = webkitAlpha;
-                  deferred.resolve(webkitAlpha);
-               
                  if(!window.chrome) {
-                   alpha = webkitAlpha-270;
-                   deferred.resolve( webkitAlpha-270);
+                   deferred.resolve(webkitAlpha-270);
+                 }else{
+                	 webkitAlpha = event.alpha;
+                     deferred.resolve(webkitAlpha);
                  }
                }
 			
 			}, false);
 		}
 		,
-		360);	
+		360);	//all 360 seconds
 	}
 	return deferred;
 }
-function getHeading(alpha, beta) {
-	var azimuth = beta - alpha;
-	if (azimuth < 0)
-		return (360 + azimuth);
-	else
-		return azimuth;
-}
 
-function transformBearing(bearing) {
-	if (bearing < 0)
-		return 360 + bearing;
-	if (bearing > 360)
-		return bearing - 360;
-	return bearing;
-}
-
+/*	input: degrees between 0 and 360 
+	output: direction as clock number */ 
 function getClock(degrees) {
-	
 	var clockNumber = 0;
-	if (degrees < 0) {
-		console.log("error");
-	} else if (degrees >= 0 && degrees < 15) {
+	if (degrees >= 0 && degrees < 15) {
 		clockNumber = 12;
 	} else if (degrees >= 15 && degrees < 45) {
 		clockNumber = 1;
@@ -79,39 +59,4 @@ function getClock(degrees) {
 	}
 	return clockNumber;
 }
-function deg2rad(a) {
-	return a * 0.017453292519943295;
-}
 
-function rad2deg(a) {
-	return a *( 180 / Math.PI);
-}
-function normaliseBearing(degrees){
-	return (degrees + 360)%360;
-}
-function frac(a) {
-	return (a - Math.floor(a));
-}
-function calcBearing(lat1, lon1, lat2, lon2) {
-	// source : http://www.movable-type.co.uk/scripts/latlong.html
-	var lat1 = deg2rad(lat1);
-	var lat2 = deg2rad(lat2);
-	var dLat = deg2rad(lat2 - lat1);
-	var dLon = deg2rad(lon2 - lon1);
-	var y = Math.sin(dLon) * Math.cos(lat2);
-	var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)
-			* Math.cos(dLon);
-	var brng = rad2deg(Math.atan2(y, x));
-	return brng;
-}
-function calcCompassBearing(lat1, lon1, lat2, lon2, compassHeading) {
-	var destinationBearing = normaliseBearing(calcBearing(lat2,lon2,lat1,lon1));
-	if(destinationBearing > compassHeading){
-		return destinationBearing - compassHeading;
-	}else if(compassHeading > destinationBearing){
-		return 360 - (compassHeading - destinationBearing);
-	}else{
-		return destinationBearing;
-	}
-	
-}

@@ -1,4 +1,6 @@
-function initPage(){		
+function initPage(){
+	var wayPerCord = new Array();
+	var locatedLat, locatedLon;	
 			//prevents loading screen
 			$(document).bind("mobileinit", function() {
 				$.mobile.loadingMessage = false;
@@ -42,14 +44,14 @@ function initPage(){
 				 
 			});
 			
-			$( '#streetViewLeft' ).live( "pageinit", function( event ) {
-				//if something is selected and user changes to routing -> show route
-				//id="routingbuttonLeft" 
-						$('#streetviewContent').html("");
-			});
+//			$( '#streetViewLeft' ).live( "pageinit", function( event ) {
+//						$('#streetviewContent').html("");
+//			});
 //			
 			$('#routing' ).live( "pageinit" ,function( event ) {
-				//getRoute(47.22572,8.81880,"47.226898,8.811397");
+				console.log("roting");
+			//	getGPSLocation();
+				//getRoute(locatedLat,locatedLon, "47.2308533,8.8233978");
 			});
 	}
 			

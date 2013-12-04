@@ -16,9 +16,10 @@ function getGPSLocation() {
 	};
 	function success(pos) {
 		var crd = pos.coords;
-		lat = 47.22540;
-		lon =  8.81807;
-	//	lat = crd.latitude;
+		lat = 47.2300422;
+		lon = 8.8260246;
+//		lon= 8.82644;
+//		lat = crd.latitude;
 	//	lon = crd.longitude;
 		locatedLat = lat;
 		locatedLon = lon;
@@ -51,7 +52,6 @@ function refreshStreetView(){
 }
 function writeActualLocation(way){
 	getAddressForLatLon().done(function(address){
-		console.log(way);
 		if((typeof address != "undefined") && (typeof way.way != "undefined")){
 			locationManual = false;
 			$('#locationOutput').html(getTypeOfWay(way.way.tags)+", <br>"+ address.postcode + " " +address.city );
@@ -249,8 +249,8 @@ function getStreetView() {
 			getNodeInformation(locatedWay.nodes[0]).done(function(firstNode){
 				getNodeInformation(locatedWay.nodes[locatedWay.nodes.length-1]).done(function(lastNode){
 					var dist = calcDistance(firstNode.lat, firstNode.lon, lastNode.lat, lastNode.lon);
-					startentry = new tempEntry("", dist,  firstNode.lat,  firstNode.lon, locatedWay);
-					endentry  = new tempEntry("", "", lastNode.lat,  lastNode.lon, locatedWay);
+					startentry = new tempEntry("", dist,  firstNode.lat,  firstNode.lon,"", locatedWay);
+					endentry  = new tempEntry("", "", lastNode.lat,  lastNode.lon,"", locatedWay);
 					getStreetContent(startentry, endentry);
 				});
 			});
@@ -259,8 +259,8 @@ function getStreetView() {
 			//located way is distsegmententry
 			console.log(locatedWay);
 			var dist = calcDistance( locatedWay.startlat,  locatedWay.startlon,locatedWay.endLat,  locatedWay.endLon);
-			startentry = new tempEntry("", dist,  locatedWay.startlat,  locatedWay.startlon, locatedWay.way);
-			endentry  = new tempEntry("", "",  locatedWay.endLat,  locatedWay.endLon, locatedWay.way);
+			startentry = new tempEntry("", dist,  locatedWay.startlat,  locatedWay.startlon, "",locatedWay.way);
+			endentry  = new tempEntry("", "",  locatedWay.endLat,  locatedWay.endLon, "",locatedWay.way);
 			getStreetContent(startentry, endentry);
 	}
 
@@ -823,8 +823,6 @@ function getIsecWarnings(wayVectors){
 				warnings.push(warning);
 		}
 	});
-	console.log("get IsecWarn");
-	console.log(warnings);
 	return warnings;
 }
 

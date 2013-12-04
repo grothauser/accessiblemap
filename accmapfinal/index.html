@@ -22,14 +22,14 @@
 			<script type="text/javascript" src="js/routingOSRM.js"></script>
 			<script type="text/javascript" src="js/treesInStreet.js"></script>
 			<script type="text/javascript" src="js/dictionary.js"></script>
+			<script type="text/javascript" src="js/mathematics.js"></script>
 			<script type="text/javascript" src="lib/javascript.js"></script>
 			<script type="text/javascript" src="lib/javascript.util.js"></script>
 			<script type="text/javascript" src="lib/jsts.js" ></script>
 			<script type="text/javascript" src="js/wayInfo.js" ></script>
 			<script type="text/javascript">
-				var wayPerCord = new Array();
+				
 				initPage();
-				var locatedLat, locatedLon;
 		
 			</script>
 
@@ -84,6 +84,9 @@
 										<input type="checkbox"  id="amenity=fountain" name="op" class="custom"/>
 										<label for="amenity=fountain" >Brunnen</label>
 
+										<input type="checkbox" id="roadworks" class="custom" name="op"/>
+										<label for="roadworks">Baustellen</label>
+
 										<input type="checkbox"  id="amenity=waste_disposal"  name="op" class="custom"/>
 										<label for="amenity=waste_disposal" >Container</label>
 
@@ -93,15 +96,20 @@
 										<input type="checkbox"  id="amenity=hydrant" name="op"  class="custom"/>
 										<label for="amenity=hydrant" >Hydrante</label>
 										
-										<input type="checkbox" id="highway =trafficsignals" class="custom" name="op" checked="checked"/>
-										<label for="highway =trafficsignals">Lichtisgnale</label>
-										
 										<input type="checkbox" id="intersections" class="custom" name="op" checked="checked"/>
 										<label for="intersections" >Kreuzungen</label>
 
+										<input type="checkbox" id="highway =trafficsignals" class="custom" name="op" checked="checked"/>
+										<label for="highway =trafficsignals">Lichtisgnale</label>
+										
 										<input type="checkbox" id="amenity =bench" class="custom" name="op" checked="checked"/>
 										<label for="amenity =bench" >Sitzbänke</label>
 
+										<input type="checkbox" id="roadwork" class="custom" name="op" checked="checked"/>
+										<label for="roadwork" >Baustellen</label>
+										
+										<input type="checkbox" id="overlapwarnings" class="custom" name="op" checked="checked"/>
+										<label for="overlapwarnings" >Unvermerkte Kreuzungen</label>
 									</fieldset>
 								</div><!-- /fieldcontain -->
 
@@ -384,7 +392,7 @@
 								<a href="#location" data-transition="none" data-role="button" data-icon="marker" class="ui-btn-active ui-state-persist">Standort</a>
 							</li>
 							<li>
-								<a href="#routing" id="routingbuttonLeft" data-transition="none" data-role="button" data-icon="arrow-u" >Routing</a>
+								<a href="#routing" data-transition="none" data-role="button" data-icon="arrow-u" >Routing</a>
 							</li>
 							<li>
 								<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
@@ -451,7 +459,7 @@
 								<a href="#location" data-transition="none" data-role="button" data-icon="marker" class="ui-btn-active ui-state-persist">Standort</a>
 							</li>
 							<li>
-								<a href="#routing" id="routingbuttonRight" data-transition="none" data-role="button" data-icon="arrow-u" >Routing</a>
+								<a href="#routing" data-transition="none" data-role="button" data-icon="arrow-u" >Routing</a>
 							</li>
 							<li>
 								<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
@@ -478,19 +486,7 @@
 				<div id="contentRouting" data-role="content" >
 
 					<h3 id="titleroutingleft">Wählen Sie einen POI in der Umgebungsausgabe und lassen Sie sich dorthin navigieren.</h3>
-					<a href="#" data-icon="refresh" onClick="refreshRoute();" data-role="button" >Route aktualisieren</a>
-					<div class="ui-bar-c"  >
-
-						<div class="ui-grid-a">
-							<div class="ui-block-a">
-								<h3>Linke Strassenseite</h3>
-								
-							</div>
-							<div class="ui-block-b">
-								<a href="#routingRight" data-icon="arrow-r" data-role="button" data-mini="true">zeige rechte Seite</a>
-							</div>
-						</div><!-- /grid-a -->
-					</div>
+					<div id="routingviewleft"></div>
 					<div id="routingDirections">
 
 					</div>
@@ -510,7 +506,7 @@
 								<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
 							</li>
 							<li>
-								<a href="#info" data-transition="none" data-role="button" data-icon="info" >Info</a>
+								<a href="pages/info.html" data-transition="none" data-role="button" data-icon="info" >Info</a>
 							</li>
 						</ul>
 					</div><!-- /navbar -->
@@ -533,22 +529,10 @@
 				<!-- content -->
 				<div id="contentRoutingRight" data-role="content" >
 						<h3 id="titleroutingright">Wählen Sie einen POI in der Umgebungsausgabe und lassen Sie sich dorthin navigieren.</h3>
-						<a href="#" data-icon="refresh" onClick="refreshRoute();"  data-role="button" >Route aktualisieren</a>
-				
-					<div class="ui-bar-c"  >
-
-						<div class="ui-grid-a">
-							<div class="ui-block-a">
-								<h3>Rechte Strassenseite</h3>
-							</div>
-							<div class="ui-block-b">
-								<a href="#routing" data-icon="arrow-l" data-role="button" data-mini="true">zeige linke Seite</a>
-							</div>
-						</div><!-- /grid-a -->
+					<div id="routingviewright">
 					</div>
 					
 					<div id="routingDirectionsRight"></div>
-
 				</div><!--/content -->
 
 				<!-- footer -->
@@ -565,7 +549,7 @@
 								<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
 							</li>
 							<li>
-								<a href="#info" data-transition="none" data-role="button" data-icon="info" >Info</a>
+								<a href="pages/info.html" data-transition="none" data-role="button" data-icon="info" >Info</a>
 							</li>
 						</ul>
 					</div><!-- /navbar -->
@@ -622,7 +606,7 @@
 								<a href="#options" data-transition="none" data-role="button" data-icon="gear" class="ui-btn-active ui-state-persist" >Optionen</a>
 							</li>
 							<li>
-								<a href="#info" data-transition="none" data-role="button" data-icon="info"  >Info</a>
+								<a href="pages/info.html" data-transition="none" data-role="button" data-icon="info"  >Info</a>
 							</li>
 						</ul>
 					</div><!-- /navbar -->
