@@ -42,13 +42,15 @@ function initPage(){
 				 
 			});
 			
-//			$( '#streetViewLeft' ).live( "pageinit", function( event ) {
-//						$('#streetviewContent').html("");
-//			});
+			$( '#streetViewLeft' ).live( "pageinit", function( event ) {
+				//if something is selected and user changes to routing -> show route
+				//id="routingbuttonLeft" 
+						$('#streetviewContent').html("");
+			});
 //			
-//			$('#routing' ).live( "pageinit", ,function( event ) {
-//				//getRoute(47.2268685, 8.8115668,"47.22621519330127, 8.813520222902298");
-//			});
+			$('#routing' ).live( "pageinit" ,function( event ) {
+				//getRoute(47.22572,8.81880,"47.226898,8.811397");
+			});
 	}
 			
 
@@ -60,7 +62,7 @@ function setListener(){
 				$('#selectedPOIButtonLeft  .ui-btn-text').text("Navigieren nach " + $(this).val());
 				$('#aroundLeft').trigger('create');
 			} else {
-				$('#aroundLeft').append("<a href=\"#routing\" data-transition=\"none\" data-role=\"button\"" + "data-icon=\"arrow-u\" id=\"selectedPOIButtonLeft\" >Navigieren nach " +$(this).val() + "</a>");
+				$('#aroundLeft').append("<a href=\"#\" data-transition=\"none\" data-role=\"button\"" + "data-icon=\"arrow-u\" id=\"selectedPOIButtonLeft\" >Navigieren nach " +$(this).val() + "</a>");
 				$('#selectedPOIButtonLeft').bind('click', function(){
 					getRoute(locatedLat, locatedLon, $('input[name=routeChoiceLeft]:checked').attr('id'));
 					$('#titleroutingleft').text("Route von " + $('#locationOutput').text() + " nach " +$('input[name=routeChoiceLeft]:checked').val() );

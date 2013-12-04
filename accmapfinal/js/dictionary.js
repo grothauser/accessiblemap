@@ -94,6 +94,9 @@ function getKindOfPoi(string) {
 	case "dentist":
 		return "Zahnarzt";
 		
+	case "intersection":
+		return "Kreuzung";
+		
 	default:
 		return "Unbekannt";
 	}
@@ -102,19 +105,19 @@ function getKindOfPoi(string) {
 
 function getDirectionForDegrees(deg) {
 	if ((deg >= 22.5) && (deg < 57.5)) {
-		return "leicht rechts abbiegen. ";
+		return "leicht links abbiegen. ";
 	} else if ((deg >= 57.5) && (deg < 112.5)) {
-		return "rechts abbiegen.";
+		return "links abbiegen.";
 	} else if ((deg >= 112.5) && (deg < 180)) {
-		return "scharf rechts abbiegen.";
+		return "scharf links abbiegen.";
 	} else if (deg == 180) {
 		return "umdrehen.";
 	} else if ((deg > 180) && (deg < 247.5)) {
-		return "scharf links abbiegen.";
+		return "scharf rechts abbiegen.";
 	} else if ((deg >= 247.5) && (deg < 292.5)) {
-		return "links abbiegen.";
+		return "rechts abbiegen.";
 	} else if ((deg >= 292.5) && (deg < 337.5)) {
-		return "leicht links abbiegen.";
+		return "leicht rechts abbiegen.";
 	} else if ((deg >= 337.5) || (deg < 22.5)) {
 		return "geradeaus weiterlaufen.";
 	} else {
@@ -183,18 +186,18 @@ function getSurface(surface) {
 function getTypeOfWay(wayTags) {
 	var type = "Strasse";
 	if(typeof wayTags.highway != "undefined"){
-	switch (wayTags.highway) {
-	case "steps":
-		type = "Treppe";
-		break;
-	case "footway":
-	case "path":
-	case "pedestrian":
-		type = "Fussweg";
-		break;
-	default:
-		type = "Strasse";
-	}
+		switch (wayTags.highway) {
+		case "steps":
+			type = "Treppe";
+			break;
+		case "footway":
+		case "path":
+		case "pedestrian":
+			type = "Fussweg";
+			break;
+		default:
+			type = "Strasse";
+		}
 	}
 
 	// if other than default -> change text

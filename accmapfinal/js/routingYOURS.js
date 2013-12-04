@@ -29,13 +29,11 @@ function interpreteYOURSRoute(data) {
 				getSide(compval, cordsOfRoute[0], cordsOfRoute[1], "routing");
 			});
 		}else{
-			console.log("get Side");
 			getSide(0, cordsOfRoute[0], cordsOfRoute[1], "routing");
 		}
 		console.log(cordsOfRoute);
 		$.each(cordsOfRoute, function(indexCoord, coord){
 			searchOverpassForCoords(coord,'way["highway"]').done(function(allPathsForCoord){
-				
 				var smallestDist;
 				var nearestNode;
 				//go trough all ways
@@ -82,7 +80,7 @@ function alreadyInWays(way) {
 function searchOverpassForCoords(coord,keyWord) {
 	var deferred = $.Deferred();
 	var bbox = getBbox(coord.lat, coord.lon, 30);
-
+	console.log("searching for " + coord.lat + "," + coord.lon);
 	$.ajax({
 		type : 'GET',
 		url : "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];"
@@ -99,13 +97,12 @@ function searchOverpassForCoords(coord,keyWord) {
 			$.each(overpassResult.elements, function(index, element){
 				var allNodesOfWay = new Array();
 					$.each(element.nodes, function(indexNodes, node){
-					
 						//get node lat,lon for all nodes of each way
 						getNodeInformation(node).done(function(nodeData){
 							allNodesOfWay.push(new coordPair(nodeData.lat, nodeData.lon, nodeData.id));
 							if(indexNodes == (element.nodes.length-1)){
 								allPathsForCoord.push(new wayOfRoute(element.id, allNodesOfWay,element.tags));
-								if(index == (overpassResult.elements.length-1)){
+								if(index === (overpassResult.elements.length-1)){
 									deferred.resolve(allPathsForCoord);
 								}
 								
@@ -117,7 +114,9 @@ function searchOverpassForCoords(coord,keyWord) {
 					});
 			
 			});
-			
+			if(overpassResult.elements.length === 0){
+				deferred.resolve(0);
+			}
 		}
 	});
 	return deferred;
@@ -161,7 +160,6 @@ function getSelectedRoutingElements(){
 			}
 		}
 	});
-	console.log(selectedPOIs);
 	return selectedPOIs;
 }
 
@@ -190,7 +188,6 @@ function isPip(lat, lon, multipolyCoords){
 
 
 function checkRoute() {
-	console.log("checkroute");
 	for ( var i = 0; i < (cordsOfRoute.length) ; i++) {
 		if(i < (cordsOfRoute.length - 1)){
 			var waysForCords = getWaysForCords(cordsOfRoute[i].lat, cordsOfRoute[i].lon); 
