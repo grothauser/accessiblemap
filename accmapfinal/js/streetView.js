@@ -8,7 +8,7 @@ var streetViewContent = [];
 var wayVectors = [];
 
 function getGPSLocation() {
-	console.log('asking geolocation');
+	console.log('asking geddddolocation');
 	var options = {
 		enableHighAccuracy : true,
 		timeout : 5000,
@@ -78,14 +78,7 @@ function getAddressForLatLon() {
 	});
 return deferred;
 }
-function way(name, wayId, nodes, tags, lat, lon){
-	this.name = name;
-	this.wayId = wayId;
-	this.nodes = nodes;
-	this.tags = tags;
-	this.lat = lat;
-	this.lon = lon;
-}
+
 function getManualLocation() {
 	var streetInput = $('#street').val();
 	var placeInput = $('#place').val();
@@ -215,15 +208,7 @@ function getWayFromNominatim(street, number, plz, place) {
 	return deferred;
 }
 
-function streetViewEntry(id,lat,lon,name, clock, distance, tags){
-	this.id = id;
-	this.lat = lat;
-	this.lon = lon;
-	this.name = name;
-	this.clock = clock;
-	this.distance = distance;
-	this.tags = tags;
-}
+
 
 function detectmob() { 
 	 if( navigator.userAgent.match(/Android/i)
@@ -368,7 +353,6 @@ function printPOIS(side){
 		$('#aroundRight').html(htmlAround);
 		$('#aroundRight').trigger('create');
 	}
-	//$('#aroundRight').html("");
 }
 
 
@@ -381,21 +365,7 @@ function locateStreet(){
 	return deferred;
 }
 
-function getHeadingDiff(compassHeading, bearingToNode){
-	var diff;
-	if(compassHeading > bearingToNode){
-		diff = compassHeading - bearingToNode;
-	}
-	else if(compassHeading < bearingToNode){
-		diff = bearingToNode- compassHeading;
-	}
-	return diff;
-}
-function isLeft(alat, alon, blat, blon, clat, clon){
-	console.log("prev: "+alat+", "+alon+" next: "+blat+", "+blon);
-    var val = ((blon - alon)*(clat - alat)-(blat - alat)*(clon - alon));
-    return val > 0;
-}
+
 
 function getSelectedPois() {
 	var selectedPOIs = new Array();
@@ -470,107 +440,6 @@ function alreadyFound(nodeid, found){
 	
 }
 
-function calcDistance(lat1, lon1, lat2, lon2) {
-	 var R = 6371; 
-	 var dLat = deg2rad(lat2-lat1);
-	 var dLon = deg2rad(lon2-lon1);
-	 var lat1 = deg2rad(lat1);
-	 var lat2 = deg2rad(lat2);
-
-	 var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-	         Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
-	 var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-	 var d = R * c;
-	 return d;
-}
-
-function getWayInfoOverpass(wayId){
-		var deferred = $.Deferred();
-		$.ajax({
-			type : 'GET',
-			url : "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];way("
-					+ wayId + ");out;",
-			dataType : 'json',
-			jsonp : 'json_callback',
-			error : function(parameters) {
-				console.error("error");
-			},
-			success : function(parameters) {
-				deferred.resolve(parameters);
-			},
-		});
-		return deferred;
-
-}
-function searchOverpass(lat, lon, keyWord) {
-	var bbox = getBbox(lat, lon, "100");
-	console.log(bbox);
-	var deferred = $.Deferred();
-	$.ajax({
-		type : 'GET',
-		url : "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];"
-				+ keyWord + "(" + bbox[1] + "," + bbox[0] + "," + bbox[3] + ","
-				+ bbox[2] + ");out body; node(w); out skel;",
-		dataType : 'json',
-		jsonp : 'json_callback',
-		error : function(parameters) {
-			console.error("error");
-		},
-		// Handle results over to determination
-		success : function(overpassResult) {
-			for(var i=0; i<overpassResult.elements.length; i++){
-				if(overpassResult.elements[i].type == "way")
-					allPaths.push(overpassResult.elements[i]);
-				else
-					allNodes.push(overpassResult.elements[i]);
-			}
-			deferred.resolve(overpassResult);
-		},
-	});
-	return deferred;
-}
-
-
-//radius is in meters
-function getBbox(lat, lon, radius) {
-	var radiusX = radius/1000;
-	var radiusY = radius/1000;
-	
-	var degreesOfRadiusX = (radiusX / 111.111);
-	var degreesOfRadiusY = (radiusY / 111.111);
-	
-	var degreesOfLatY = degreesOfRadiusY * Math.cos(((lat * Math.PI)/180));
-	
-	//longitudes 
-	var bbox = new Array();
-	bbox.push(parseFloat(lon - degreesOfRadiusX));
-	bbox.push(parseFloat(lat - degreesOfLatY));
-	bbox.push(parseFloat(lon + degreesOfRadiusX));
-	bbox.push(parseFloat(lat + degreesOfLatY));
-	return bbox;
-}
-function distSegmentEntry(startlat,startlon,endLat,endLon,matchedLat,matchedLon,dist,wayId,way){
-	this.startlat = startlat;
-	this.startlon = startlon;
-	this.endLat = endLat;
-	this.endLon = endLon;
-	this.matchedLat = matchedLat;
-	this.matchedLon = matchedLon;
-	this.dist = dist;
-	this.wayId = wayId;
-	this.way = way;
-}
-
-function wayVector(wayId, nodes, tags){
-	this.wayId = wayId;
-	this.nodes = nodes;
-	this.tags = tags;
-}
-function point(x,y){
-	this.x = x;
-	this.y = y;
-}
-
 function findWays(opWays, opNodes, lat, lon){
 	$.each(opWays, function(i, overpassResult){
 		var nodes = new Array();
@@ -623,30 +492,11 @@ function findMatchingWay(lat,lon){
 			}
 	});
 	if(typeof nearestSegment != "undefined"){
-		console.log(candidates);
 		return nearestSegment;
 	}else{
 		console.log("no nearestsegment found");
 		return "undefined";
 	}
-}
-function getNodeInformation(nodeId) {
-	var deferred = $.Deferred();
-	$
-			.ajax({
-				type : 'GET',
-				url : "http://overpass-api.de/api/interpreter?data=[out:json];node("
-						+ nodeId + ");out;",
-				dataType : 'json',
-				jsonp : 'json_callback',
-				error : function(parameters) {
-					console.error("error");
-				},
-				success : function(parameters) {
-					deferred.resolve(parameters.elements[0]);
-				},
-			});
-	return deferred;
 }
 
 function getNodeInfo(nodeId, allNodes) {
@@ -659,62 +509,9 @@ function getNodeInfo(nodeId, allNodes) {
 	return resultNode
 }
 
-function searchOverpassForLocationCoords(lat, lon, keyWord) {
-	var deferred = $.Deferred();
-	var bbox = getBbox(lat, lon, "100");
-	var ways = [];
-	var nodes = [];
-	$.ajax({
-		type : 'GET',
-		url : "http://overpass-api.de/api/interpreter?data=[out:json];"
-				+ keyWord + "(" + bbox[1] + "," + bbox[0] + "," + bbox[3] + ","
-				+ bbox[2] + ");out body; node(w); out skel;",
-		dataType : 'json',
-		jsonp : 'json_callback',
-		error : function(parameters) {
-			console.error("error");
-		},
-		// Handle results over to determination
-		success : function(overpassResult) {
-			$.each(overpassResult.elements, function(index, result){
-				if(result.type == "way"){
-					ways.push(result);
-				}
-				else{
-					nodes.push(result);
-				}
-			});
-			findWays(ways, nodes, lat, lon);
-			var way = findMatchingWay(lat,lon)
-			if(typeof way != "undefined"){
-				deferred.resolve(way);
-			}else{
-				console.log("kreugzungsnode");
-				deferred.resolve("an kreuzung");
-			}
-		}
-	});
-	return deferred;
-}
 
-function sqr(x) { 
-	return x * x 
-}
-function dist2(v, w) { 
-	return sqr(v.x - w.x) + sqr(v.y - w.y) 
-}
-function distToSegmentSquared(p, v, w) {
-  var l2 = dist2(v, w);
-  if (l2 == 0) return dist2(p, v);
-  var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-  if (t < 0) return dist2(p, v);
-  if (t > 1) return dist2(p, w);
-  return dist2(p, { x: v.x + t * (w.x - v.x),
-                    y: v.y + t * (w.y - v.y) });
-}
-function distToSegment(p, v, w) { 
-	return Math.sqrt(distToSegmentSquared(p, v, w)); 
-}
+
+
 function getSide(compass, startPoint, endPoint, page){
 	var startBearing = calcBearing(lat, lon, startPoint.lat, startPoint.lon);
 	var endBearing = calcBearing(lat, lon, endPoint.lat, endPoint.lon);
@@ -726,7 +523,6 @@ function getSide(compass, startPoint, endPoint, page){
 	}
 	
 	var bool = isLeft(startPoint.lat, startPoint.lon, endPoint.lat, endPoint.lon, lat, lon);
-	console.log("isLeft = "+bool);
 	
 	if(page === "routing"){
 		if(bool){
@@ -738,7 +534,6 @@ function getSide(compass, startPoint, endPoint, page){
 		if(bool){
 			$.mobile.changePage($("#streetViewLeft"), "none");
 		}else{
-			//change to view on right side
 			$.mobile.changePage($("#streetViewRight"), "none");
 		}
 	}

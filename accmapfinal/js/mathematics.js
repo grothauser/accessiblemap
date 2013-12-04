@@ -1,20 +1,31 @@
 var streetWidth = 0.01;
+function sqr(x) { 
+	return x * x 
+}
+function dist2(v, w) { 
+	return sqr(v.x - w.x) + sqr(v.y - w.y) 
+}
+function distToSegmentSquared(p, v, w) {
+  var l2 = dist2(v, w);
+  if (l2 == 0) return dist2(p, v);
+  var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+  if (t < 0) return dist2(p, v);
+  if (t > 1) return dist2(p, w);
+  return dist2(p, { x: v.x + t * (w.x - v.x),
+                    y: v.y + t * (w.y - v.y) });
+}
 
+//input: point p, point v and point w  where v and w are start and end of segment 
+//output: distance between segment and point p
+function distToSegment(p, v, w) { 
+	return Math.sqrt(distToSegmentSquared(p, v, w)); 
+}
 function deg2rad(a) {
 	return a * 0.017453292519943295;
 }
 function rad2deg(a) {
 	return a *( 180 / Math.PI);
 }
-
-//function transformBearing(bearing) {
-//	if (bearing < 0)
-//		return 360 + bearing;
-//	if (bearing > 360)
-//		return bearing - 360;
-//	return bearing;
-//}
-
 
 function normaliseBearing(degrees){
 	return (degrees + 360)%360;
@@ -36,7 +47,6 @@ function calcBearing(lat1, lon1, lat2, lon2) {
 }
 function getAzimuth(degreesToNext,degreesToOverNext){
 var azimuth = degreesToOverNext - degreesToNext;
-console.log("degreestoovernext - degreestonext:"+azimuth);
 if(azimuth < 0){
 	return 360 + azimuth;
 }
@@ -190,3 +200,41 @@ function getPointsInBuffer(buffer, selPoi, lat,lon, distance) {
 	}
 	return poisInStreetBuffer;
 }
+//caluclates the bounding box for a coordinate with a certain radius
+function getBbox(lat, lon, radius) {
+	var radiusX = radius/1000;
+	var radiusY = radius/1000;
+	
+	var degreesOfRadiusX = (radiusX / 111.111);
+	var degreesOfRadiusY = (radiusY / 111.111);
+	
+	var degreesOfLatY = degreesOfRadiusY * Math.cos(((lat * Math.PI)/180));
+	
+	//longitudes 
+	var bbox = new Array();
+	bbox.push(parseFloat(lon - degreesOfRadiusX));
+	bbox.push(parseFloat(lat - degreesOfLatY));
+	bbox.push(parseFloat(lon + degreesOfRadiusX));
+	bbox.push(parseFloat(lat + degreesOfLatY));
+	return bbox;
+}
+
+function isLeft(alat, alon, blat, blon, clat, clon){
+    var val = ((blon - alon)*(clat - alat)-(blat - alat)*(clon - alon));
+    return val > 0;
+}
+//calculates the distance in km between two coordinates
+function calcDistance(lat1, lon1, lat2, lon2) {
+	 var R = 6371; 
+	 var dLat = deg2rad(lat2-lat1);
+	 var dLon = deg2rad(lon2-lon1);
+	 var lat1 = deg2rad(lat1);
+	 var lat2 = deg2rad(lat2);
+
+	 var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+	         Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
+	 var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+	 var d = R * c;
+	 return d;
+}
+

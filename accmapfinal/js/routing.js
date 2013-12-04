@@ -1,7 +1,6 @@
 var destlat, destlon;
 var routeStart, routeEnd;
 
-
 function refreshRoute(){
 	getGPSLocation();
 	getRoute(locatedLat, locatedLon, destlat+","+destlon);
@@ -53,6 +52,7 @@ function writeHTMLButtons(){
 }
 // write the routing text
 function writeRoute(cords) {
+	writeHTMLButtons();
 	var tempRoute = [];
 	var distance,direction,degreesToNext;
 	var overNextCoordinate, degreesToOverNext, azimuth;
@@ -151,10 +151,9 @@ function cleanRoute(route) {
 			if (index <= (route.length - 2) && (index > 0)) {
 					//get the next step
 					var nextStep = route[index + 1];
-					var isSame = isTheSame(routeStep,nextStep);
 					var distSum = routeStep.distance;
 					//if next and this are the same
-					if(isSame){
+					if(isTheSame(routeStep,nextStep)){
 						// compare until not anymore the same direction and wayId
 						var counter = index +1;
 						while(isTheSame(routeStep, nextStep)){
@@ -189,17 +188,10 @@ function isTheSame(routeStep,nextStep){
 	}
 }
 
-function tempEntry(direction, distance,  lat, lon, bearingtoNext, way) {
-	this.direction = direction;
-	this.distance = distance;
-	this.lat = lat;
-	this.lon = lon;
-	this.bearingtoNext = bearingtoNext;
-	this.way = way;
-}
+
 
 function writeApp(list, side) {
-	writeHTMLButtons();
+	
 	var html = '<div data-role="collapsible-set" data-theme="c" data-content-theme="d">';	
 	$.each(list,function(index, routeStep) {
 			var indexIncr = (index + 1);
@@ -298,68 +290,6 @@ function alreadyInWays(way) {
 	}
 	return false;
 }
-function searchOverpassForCoords(coord,keyWord) {
-	var deferred = $.Deferred();
-	var bbox = getBbox(coord.lat, coord.lon, 30);
-	console.log("searching for " + coord.lat + "," + coord.lon);
-	$.ajax({
-		type : 'GET',
-		url : "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];"
-				+ keyWord + "(" + bbox[1] + "," + bbox[0] + "," + bbox[3] + ","
-				+ bbox[2] + ");out;",
-		dataType : 'json',
-		jsonp : 'json_callback',
-		error : function(parameters) {
-			console.error("error");
-		},
-		// Handle results over to determination
-		success : function(overpassResult) {
-			var allPathsForCoord = new Array();
-			$.each(overpassResult.elements, function(index, element){
-				var allNodesOfWay = new Array();
-					$.each(element.nodes, function(indexNodes, node){
-						//get node lat,lon for all nodes of each way
-						getNodeInformation(node).done(function(nodeData){
-							allNodesOfWay.push(new coordPair(nodeData.lat, nodeData.lon, nodeData.id));
-							if(indexNodes == (element.nodes.length-1)){
-								allPathsForCoord.push(new wayOfRoute(element.id, allNodesOfWay,element.tags));
-								if(index === (overpassResult.elements.length-1)){
-									deferred.resolve(allPathsForCoord);
-								}
-								
-							}
-							
-						});
-						
-						
-					});
-			
-			});
-			if(overpassResult.elements.length === 0){
-				deferred.resolve(0);
-			}
-		}
-	});
-	return deferred;
-}
-
-
-
-function coordWayMatch(index,wayId, lat, lon,nodeId,tags) {
-	this.index = index;
-	this.wayId = wayId;
-	this.lat = lat;
-	this.lon = lon;
-	this.tags = tags; 
-}
-function wayOfRoute(wayId, nodes,tags) {
-	this.wayId = wayId;
-	this.nodes = nodes;
-	this.tags = tags;
-}
-
-
-
 
 function getSelectedRoutingElements(){
 	var selectedPOIs = new Array();
@@ -390,8 +320,7 @@ function getWaysForCords(lat, lon) {
 	for ( var j = 0; j < waysOfRoute.length; j++) {
 		// find a way entry for the coordinates
 		if ((waysOfRoute[j].lat == lat) && (waysOfRoute[j].lon == lon)) {
-				var index = getIndexOfCordInRoute(lat, lon);
-				var match = new coordWayMatch(index,waysOfRoute[j].wayId,waysOfRoute[j].lat,waysOfRoute[j].lon ,waysOfRoute[j].node,waysOfRoute[j].tags);
+				var match = new coordWayMatch("",waysOfRoute[j].wayId,waysOfRoute[j].lat,waysOfRoute[j].lon ,waysOfRoute[j].node,waysOfRoute[j].tags);
 				waysArray.push(match);
 		}
 	}
@@ -417,37 +346,13 @@ function cordHasMatch( match){
 }
 
 
-
-function getWayForCords(lat, lon) {
-var way;
-	$.each(wayPerCord, function(index, matchingSegment){
-		// find a way entry for the coordinates
-		if( (matchingSegment.matchedLat == lat) && (matchingSegment.matchedLon == lon)) {
-				var index = getIndexOfCordInRoute(lat, lon);
-				var match = new coordWayMatch(index,matchingSegment.wayId,matchingSegment.matchedLat,matchingSegment.matchedLon ,matchingSegment.tags);
-				waysArray.push(match);
-			}
-	});
-	return way;
-}
-
-function getIndexOfCordInRoute(lat,lon){
-for(var i = 0; i < cordsOfRoute.length; i++){
-	if((cordsOfRoute[i].lat == lat) && (cordsOfRoute[i].lon == lon)){
-			return i;
-		}
-	}
-
-}
-
 function getCommonWays(waysForCords,waysForNextCords,lat,lon,nextLat,nextLon){
 	wayPerCord = new Array();
 	// check if they have a way in common
 	for ( var j = 0; j < waysForCords.length; j++) {
 		// this way is in the array for the nextCords
 		if(wayIsInArr(waysForCords[j], waysForNextCords)){	
-			var index = getIndexOfCordInRoute(lat,lon);
-			var match = new coordWayMatch(index,waysForCords[j].wayId,lat,lon,waysForCords[j].node, waysForCords[j].tags);
+			var match = new coordWayMatch("",waysForCords[j].wayId,lat,lon,waysForCords[j].node, waysForCords[j].tags);
 			if(!(cordHasMatch(wayPerCord, match))){
 				wayPerCord.push(match);
 			}
@@ -456,8 +361,3 @@ function getCommonWays(waysForCords,waysForNextCords,lat,lon,nextLat,nextLon){
 	}
 }
 
-function coordPair(lat, lon, id) {
-	this.lat = lat;
-	this.lon = lon;
-	this.id = id;
-}

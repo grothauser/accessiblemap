@@ -5,7 +5,6 @@ function enricheWays(route, intersections){
 	var enrichedRoute = [];
 	var selectedPois = getSelectedRoutingElements();
 	getOrientationPoints(route, selectedPois, intersections).done(function(){
-		console.log(orientationContent);
 		$.each(route, function(index, coordinate){
 			if(index <= (route.length-2)){
 				var nextCoordinate = route[index + 1];
@@ -170,39 +169,5 @@ function isInZurich(route){
 		}
 	});
 	return d;
-}
-function getPoisForKeyWord(bbox, keyWord){
-	var deferred = $.Deferred();
-	$.ajax({
-		type : 'GET',
-		url : "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];node["+keyWord+"]("+bbox[1]+","+bbox[0]+","+bbox[3]+","+bbox[2]+");out;",
-		dataType : 'json',
-		jsonp : 'json_callback',
-		error : function(parameters) {
-			console.error("error");
-		},
-		success : function(parameters) {
-			if(parameters.elements.length > 0){
-				$.each(parameters.elements, function(index, data){
-					var entry = new orientationEntry(data.lat, data.lon, keyWord, data.tags);
-					orientationContent.push(entry);
-					if(index == (parameters.elements.length-1)){
-						deferred.resolve("");
-					}
-				});
-			}
-			else{
-				deferred.resolve("0");
-			}
-		},
-	});
-	return deferred;
-}
-function orientationEntry(lat,lon,keyword, tags, distance){
-	this.lat = lat;
-	this.lon = lon;
-	this.keyword = keyword;
-	this.tags = tags;
-	this.distance = distance;
 }
 

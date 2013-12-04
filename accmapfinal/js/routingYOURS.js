@@ -13,10 +13,8 @@ function routeYOURSAPI(fromLat, fromLon,toLat, toLon) {
 		dataType : 'json',
 		error : function(data) {
 			console.error("error");
-			console.log(data);
 		},
 		success : function(data) {
-			console.log(data);
 			interpreteYOURSRoute(data);
 		},
 	});
