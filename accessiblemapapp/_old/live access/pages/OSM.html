@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta charset=utf-8 />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TEST</title>
+  <script src='http://api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.js'></script>
+  <link href='http://api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.css' rel='stylesheet' />
+  <!--[if lte IE 8]>
+    <link href='//api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.ie.css' rel='stylesheet'>
+  <![endif]-->
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
+</head>
+<body>
+<style>
+    #output {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 10px;
+        background: #fff;
+        z-index: 100;
+    }
+</style>
+<div id='output'>
+    click: <code id='click'></code><br/>
+    mousemove: <code id='mousemove'></code><br/>
+    touchmove : <code id='touchmove'></code><br/>
+</div>
+<div id='map'></div>
+<script type='text/javascript'>
+var click = document.getElementById('click'),
+    mousemove = document.getElementById('mousemove'),
+    touchmove = document.getElementById('touchmove');
+
+var map = L.mapbox.map('map', 'examples.map-20v6611k');
+/*document.getElementById('map').ontouchstart = function(e){
+	window[e.type].innerHTML = e.containerPoint.toString() + ', ' + e.latlng.toString();
+};*/
+document.getElementById('map').ontouchmove = function(e){
+	window[e.type].innerHTML = e.containerPoint.toString() + ', ' + e.latlng.toString();
+};
+map.on('click mousemove touchmove', function(e) {
+    window[e.type].innerHTML = e.containerPoint.toString() + ', ' + e.latlng.toString();
+});
+map.dragging.disable();
+map.touchZoom.disable();
+map.doubleClickZoom.disable();
+map.scrollWheelZoom.disable();
+map.boxZoom.disable();
+</script>
+</body>
+</html>
