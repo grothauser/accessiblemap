@@ -8,7 +8,6 @@ var streetViewContent = [];
 var wayVectors = [];
 
 function getGPSLocation() {
-	console.log('asking geddddolocation');
 	var options = {
 		enableHighAccuracy : true,
 		timeout : 5000,
@@ -16,11 +15,8 @@ function getGPSLocation() {
 	};
 	function success(pos) {
 		var crd = pos.coords;
-		lat = 47.2300422;
-		lon = 8.8260246;
-//		lon= 8.82644;
-//		lat = crd.latitude;
-	//	lon = crd.longitude;
+		lat = crd.latitude;
+		lon = crd.longitude;
 		locatedLat = lat;
 		locatedLon = lon;
 
@@ -47,13 +43,15 @@ function refreshStreetView(){
 	getGPSLocation();
 	var streetViewContent = [];
 	getStreetView();
-	
-	
 }
+
 function writeActualLocation(way){
 	getAddressForLatLon().done(function(address){
 		if((typeof address != "undefined") && (typeof way.way != "undefined")){
 			locationManual = false;
+			if(typeof address.postcode === "undefined"){
+				address.postcode = "";
+			}
 			$('#locationOutput').html(getTypeOfWay(way.way.tags)+", <br>"+ address.postcode + " " +address.city );
 		}
 		else{
@@ -73,70 +71,73 @@ function getAddressForLatLon() {
 		},
 		success : function(parameters) {
 			deferred.resolve(parameters.address);
-			
 		},
 	});
 return deferred;
 }
-
 function getManualLocation() {
 	var streetInput = $('#street').val();
 	var placeInput = $('#place').val();
 	var plzInput = $('#plz').val();
 	var numberInput = $('#number').val();
 	console.log(streetInput +" "+ placeInput);
-	getWayFromNominatim(streetInput, numberInput, plzInput, placeInput).done(
-			function(data) {
-				console.log(data);
-				
-//				// if has only one match
-				if ((data.length == 1) && (typeof data.address != "undefined")) {
-					$('#dialog').dialog('close');
-					console.log("only one result");
-					$('#locationOutput').html(data.display_name);
-					locatedWayId = data.osm_id;
-					lat = data.lat;
-					lon = data.lon;
-					locatedLat = data.lat;
-					locatedLon = data.lon;
-					locationManual = true;
-					getWayInfoOverpass(locatedWayId).done(function(wayData){
-						locatedWay = wayData.elements[0];
-						locationManual = true;
-					});
-				} 
-				else{
-					// has too many matches
-					if (data.length > 10) {
-						console.log
-						$('#dialog').dialog('close');
-						$('#locationOutput').html("Die manuelle Suche hat zu viele Resultate erzielt, bitte genauere Angaben machen.");
-					} else if (data == "") {
-						$('#locationOutput').html("Die manuelle Suche hat kein Resultat erzielt");
-						$('#dialog').dialog('close');
-					
-					} else {
-						// show candidates
-						console.log("show candidates");
-						$.mobile.changePage('#manualSelection', 'pop', false, true);
-
-						var html = "<fieldset data-role=\"controlgroup\" data-mini=\"true\" id=\"locationResults\">";
-						$.each(data, function(index, candidate) {
-							if (candidate.osm_type == "way") {
-								candidatesForManualSearch.push(candidate);
-								html += "<input type=\"radio\" name=\"radioLocation\" id=\"radio-mini-" + index + "\" value=\""
-										+ candidate.osm_id + "\" />" + "<label for=\"radio-mini-" + index + "\">" + candidate.display_name
-										+ "</label>";
-							}
-						});
-
-						$('#contentManualSelection').html(html + "</fieldset>");
-						$('#contentManualSelection').trigger('create');
-				
-				}
-				}
+	getWayFromNominatim(streetInput, numberInput, plzInput, placeInput).done(function(data) {
+		// if has only one match
+		if ((data.length == 1) && (typeof data.address != "undefined")) {
+			$('#dialog').dialog('close');
+			console.log("only one result");
+			$('#locationOutput').html(data.display_name);
+			locatedWayId = data.osm_id;
+			lat = data.lat;
+			lon = data.lon;
+			locationManual = true;
+			getWayInfoOverpass(locatedWayId).done(function(wayData, nodeData){
+				var nodes = [];
+				$.each(wayData[0].nodes, function(index, nodeId){
+					var node = getNodeInfo(nodeId, nodeData);
+					pointObj = new point(node.lat, node.lon);
+					nodes.push(pointObj);
+				});
+				lat = nodes[0].x;
+				lon = nodes[0].y;
+				locatedLat = data.lat;
+				locatedLon = data.lon;
+				var startNode = nodes[0];
+				var endNode = nodes[nodes.length-1];
+				var dist = calcDistance(startNode.x, startNode.y, endNode.x, endNode.y);
+				var wayVec = new wayVector(wayData[0].id, nodes, wayData[0].tags);
+				var distSeg = new distSegmentEntry(startNode.x,startNode.y, endNode.x, endNode.y,lat,lon, dist, wayData[0].id, wayVec);
+				locatedWay = distSeg;
 			});
+		} 
+		else{
+			// has too many matches
+			if (data.length > 10) {
+				$('#dialog').dialog('close');
+				$('#locationOutput').html("Die manuelle Suche hat zu viele Resultate erzielt, bitte genauere Angaben machen.");
+			} else if (data == "") {
+				$('#locationOutput').html("Die manuelle Suche hat kein Resultat erzielt");
+				$('#dialog').dialog('close');
+			
+			} else {
+				// show candidates
+				console.log("show candidates");
+				$.mobile.changePage('#manualSelection', 'pop', false, true);
 
+				var html = "<fieldset data-role=\"controlgroup\" data-mini=\"true\" id=\"locationResults\">";
+				$.each(data, function(index, candidate) {
+					if (candidate.osm_type == "way") {
+						candidatesForManualSearch.push(candidate);
+						html += "<input type=\"radio\" name=\"radioLocation\" id=\"radio-mini-" + index + "\" value=\""
+								+ candidate.osm_id + "\" />" + "<label for=\"radio-mini-" + index + "\">" + candidate.display_name
+								+ "</label>";
+					}
+				});
+				$('#contentManualSelection').html(html + "</fieldset>");
+				$('#contentManualSelection').trigger('create');
+			}
+		}
+	});
 }
 
 function setManualLocation() {
@@ -145,70 +146,82 @@ function setManualLocation() {
 		if (candidate.osm_id == wayId) {
 			lat = candidate.lat;
 			lon = candidate.lon;
-			locatedLat = lat;
-			locatedLon = lon;
 			locatedWayId = wayId;
-			getWayInfoOverpass(locatedWayId).done(function(wayData){
-				console.log(wayData);
-				locatedWay = wayData.elements[0];
-			
-				$('#locationOutput').html(candidate.display_name);
-				$.mobile.changePage($("#location"), "none");
-				locationManual = true;
+			searchOverpassForLocationCoords(lat, lon,'way["highway"]').done(function(matchingSegment){
+				getWayInfoOverpass(locatedWayId).done(function(wayData, nodeData){
+					var nodes = [];
+					//get coordinates for nodeIds
+					$.each(wayData[0].nodes, function(index, nodeId){
+						var node = getNodeInfo(nodeId, nodeData);
+						pointObj = new point(node.lat, node.lon);
+						nodes.push(pointObj);
+					});
+					//set coordinates to startpoint
+					lat = nodes[0].x;
+					lon = nodes[0].y;
+					locatedLat = lat;
+					locatedLon = lon;
+					
+					var startNode = nodes[0];
+					var endNode = nodes[1];
+					var dist = calcDistance(startNode.x, startNode.y, endNode.x, endNode.y);
+					var wayVec = new wayVector(wayData[0].id, nodes, wayData[0].tags);
+					var distSeg = new distSegmentEntry(startNode.x,startNode.y, endNode.x, endNode.y,startNode.x,startNode.y, dist, wayData[0].id, wayVec);
+					locatedWay = distSeg;
+				
+					$('#locationOutput').html(candidate.display_name);
+					$.mobile.changePage($("#location"), "none");
+					locationManual = true;
+				});
 			});
-			
 		}
 	});
-
 }
 function getWayFromNominatim(street, number, plz, place) {
-	var wayResults = new Array();
+	var wayResults = [];
 	var deferred = $.Deferred();
-	$
-			.ajax({
-				type : 'GET',
-				url : "http://nominatim.openstreetmap.org/search?q=" + street + "+" + "," + "+" + place
-						+ "+"+"switzerland&format=json&polygon=1&addressdetails=1",
-				dataType : 'jsonp',
-				jsonp : 'json_callback',
-				error : function(parameters) {
-					console.error("error");
-				},
-				success : function(parameters) {
-					// if there is more than one result
-					var result;
-					if (parameters.length > 1) {
-						$.each(parameters, function(index, data) {
-							//only ways
-							if((data.osm_type == "way") &&(data.class == "highway")){
-							// if postalcode matches, take it
-							if(typeof plz != "undefined"){
-								if (data.address.postcode == plz) {
-									wayResults.push(data);
-									deferred.resolve(wayResults);
-								} else if(data.address.city == place){
-									wayResults.push(data);
-									deferred.resolve(wayResults);
-								}else{
-									wayResults.push(data);
-								}
-							}
-							}
-							if(index == (parameters.length-1)){
+	$.ajax({
+		type : 'GET',
+		url : "http://nominatim.openstreetmap.org/search?q=" + street + "+" + "," + "+" + place
+				+ "+"+"switzerland&format=json&polygon=1&addressdetails=1",
+		dataType : 'jsonp',
+		jsonp : 'json_callback',
+		error : function(parameters) {
+			console.error("error");
+		},
+		success : function(parameters) {
+			// if there is more than one result
+			var result;
+			if (parameters.length > 1) {
+				$.each(parameters, function(index, data) {
+					//only ways
+					if((data.osm_type == "way") &&(data.class == "highway")){
+						// if postalcode matches, take it
+						if(typeof plz != "undefined"){
+							if (data.address.postcode == plz) {
+								wayResults.push(data);
 								deferred.resolve(wayResults);
+							} else if(data.address.city == place){
+								wayResults.push(data);
+								deferred.resolve(wayResults);
+							}else{
+								wayResults.push(data);
 							}
-						});
-					} else if (parameters.length == 1) {
-						deferred.resolve(wayResults);
-					} else {
-						deferred.resolve("");
+						}
 					}
-				},
-			});
+					if(index == (parameters.length-1)){
+						deferred.resolve(wayResults);
+					}
+				});
+			} else if (parameters.length == 1) {
+				deferred.resolve(wayResults);
+			} else {
+				deferred.resolve("");
+			}
+		},
+	});
 	return deferred;
 }
-
-
 
 function detectmob() { 
 	 if( navigator.userAgent.match(/Android/i)
@@ -226,44 +239,25 @@ function detectmob() {
 	  }
 }
 function getStreetView() {
-
-	var startentry,endentry; 
-	if(locationManual){
-			//locatedWay is whole way
-			console.log(locatedWay);
-			getNodeInformation(locatedWay.nodes[0]).done(function(firstNode){
-				getNodeInformation(locatedWay.nodes[locatedWay.nodes.length-1]).done(function(lastNode){
-					var dist = calcDistance(firstNode.lat, firstNode.lon, lastNode.lat, lastNode.lon);
-					startentry = new tempEntry("", dist,  firstNode.lat,  firstNode.lon,"", locatedWay);
-					endentry  = new tempEntry("", "", lastNode.lat,  lastNode.lon,"", locatedWay);
-					getStreetContent(startentry, endentry);
-				});
-			});
-			
-	}else{
-			//located way is distsegmententry
-			console.log(locatedWay);
-			var dist = calcDistance( locatedWay.startlat,  locatedWay.startlon,locatedWay.endLat,  locatedWay.endLon);
-			startentry = new tempEntry("", dist,  locatedWay.startlat,  locatedWay.startlon, "",locatedWay.way);
-			endentry  = new tempEntry("", "",  locatedWay.endLat,  locatedWay.endLon, "",locatedWay.way);
-			getStreetContent(startentry, endentry);
-	}
-
+	var startentry,endentry;
+	var dist = calcDistance( locatedWay.startlat,  locatedWay.startlon,locatedWay.endLat,  locatedWay.endLon);
+	startentry = new tempEntry("", dist,  locatedWay.startlat,  locatedWay.startlon, locatedWay.way);
+	endentry = new tempEntry("", "",  locatedWay.endLat,  locatedWay.endLon, locatedWay.way);
+	getStreetContent(startentry, endentry);
 }
+
 function getStreetContent(startentry,endentry){
 	var streetArray = [];
 	streetArray.push(startentry);
 	streetArray.push(endentry);
 	
-	var intersections = findIntersections(wayVectors, locatedWay, lat, lon);
+	var intersections = findIntersections(wayVectors, lat, lon);
 	var warnings = getIsecWarnings(wayVectors);
-	intersections.sort(distanceSort);
 	
-	enricheWays(streetArray, intersections).done(function(enrichedStreet){
+	enrichStreetWay(locatedWay, intersections, warnings, lat, lon).done(function(enrichedStreet){
 		var selectedPois = getSelectedPois();
 		var counter = selectedPois.length;
 		if(detectmob()){
-			console.log("on mobile");
 			checkCompass().done(function(compval){
 				if(selectedPois.length>0){
 					$.each(selectedPois, function(index, poi){
@@ -281,6 +275,7 @@ function getStreetContent(startentry,endentry){
 					});
 				}else{
 					getSide(compval, startentry, endentry, "streetView");
+					printOPS(enrichedStreet,compval);
 				}
 			});
 		}else{
@@ -301,33 +296,38 @@ function getStreetContent(startentry,endentry){
 				});	
 			}else{
 				getSide(0, startentry, endentry, "streetView");
+				printOPS(enrichedStreet,0);
 			}
 		}
 	});
 }
 function printOPS(finalroute,compval){
-	var segment = finalroute[0];
-	var clock;
-	$.each(segment.opsLeft, function(index, entry){
-		clock = getClock(calcCompassBearing(entry.lat, entry.lon,locatedLat,locatedLon, compval));
-		if((clock > 9)||(clock<3)) {
-			$('#frontleftlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-		}else{
-			$('#backleftlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-		}
+	//var segment = finalroute[0];
+	$.each(finalroute, function(i, segment){
+		var clock;
+		$.each(segment.opsLeft, function(index, entry){
+			clock = getClock(calcCompassBearing(entry.lat, entry.lon,locatedLat,locatedLon, compval));
+			if((clock > 9)||(clock<3)) {
+				$('#frontleftlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
+				addIntersectionWaysText('#frontleftlist', entry);
+			}else{
+				$('#backleftlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
+				addIntersectionWaysText('#backleftlist', entry);
+			}
 		});
-	$.each(segment.opsRight, function(index, entry){
-		clock = getClock(calcCompassBearing( entry.lat, entry.lon,locatedLat,locatedLon,compval));
-		if((clock > 9)||(clock<3)) {
-			$('#frontrightlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-		}else{
-			$('#backrightlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-		}
+		$.each(segment.opsRight, function(index, entry){
+			clock = getClock(calcCompassBearing( entry.lat, entry.lon,locatedLat,locatedLon,compval));
+			if((clock > 9)||(clock<3)) {
+				$('#frontrightlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
+				addIntersectionWaysText('#frontrightlist', entry);
+			}else{
+				$('#backrightlist').append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
+				addIntersectionWaysText('#backrightlist', entry);
+			}
 		});
-	
+	});
 }
 function printPOIS(side){
-
 	var radioname, htmlAround;
 	if(side == "left"){
 		radioname = "routeChoiceLeft";
@@ -337,12 +337,12 @@ function printPOIS(side){
 		radioname = "routeChoiceRight";
 		htmlAround = '<div data-role=\"fieldcontain\" id=\"aroundRightDiv\"><fieldset data-role=\"controlgroup\" >';
 	}
-		$.each(streetViewContent, function(index, poi){
+	$.each(streetViewContent, function(index, poi){
 		var name = typeof poi.tags.name != "undefined" ? poi.tags.name : "";
 		htmlAround = htmlAround.concat('<input type="radio" data-mini="true" class="radioelem"' +
-				'name="'+radioname+'" id="'+poi.lat+","+poi.lon+'" value="' +poi.name.concat(" " +name)+' "  />' +
-				'<label for="'+poi.lat+","+poi.lon+'"> ' +
-				'<h3>'+poi.name+" "+name+" in "+poi.distance+" Meter auf "+poi.clock+" Uhr</h3> </label>");
+			'name="'+radioname+'" id="'+poi.lat+","+poi.lon+'" value="' +poi.name.concat(" " +name)+' "  />' +
+			'<label for="'+poi.lat+","+poi.lon+'"> ' +
+			'<h3>'+poi.name+" "+name+" in "+poi.distance+" Meter auf "+poi.clock+" Uhr</h3> </label>");
 	});
 	htmlAround = htmlAround.concat("</fieldset></div>");
 	if(side == "left"){
@@ -353,9 +353,24 @@ function printPOIS(side){
 		$('#aroundRight').html(htmlAround);
 		$('#aroundRight').trigger('create');
 	}
+	//$('#aroundRight').html("");
 }
 
-
+function addIntersectionWaysText(textId, entry){
+	if(entry.keyword==="intersection"){
+		$(textId).append(" mit ");
+		$.each(entry.tags, function(k, name){
+			if(k===0){
+				$(textId).append(name);
+			}
+			else if(k===entry.tags.length-1){
+				$(textId).append(" und "+name+". ");
+			}else{
+				$(textId).append(", "+ name);
+			}
+		});
+	}
+}
 
 function locateStreet(){
 	var deferred = $.Deferred();
@@ -365,19 +380,21 @@ function locateStreet(){
 	return deferred;
 }
 
-
+function isLeft(alat, alon, blat, blon, clat, clon){
+    var val = ((blon - alon)*(clat - alat)-(blat - alat)*(clon - alon));
+    return val > 0;
+}
 
 function getSelectedPois() {
-	var selectedPOIs = new Array();
+	var selectedPOIs = [];
 	$("input[type=checkbox]").each(function() {
 		var name = $(this).attr('name');
 		var id = $(this).attr('id');
 		var saved = localStorage.getItem( $(this).attr('id'));
-		if(saved == "true"){
-		
-		if(name != "op"){
-			selectedPOIs.push(id);
-		}
+		if(saved === "true"){
+			if(name !== "op"){
+				selectedPOIs.push(id);
+			}
 		}
 	});
 	return selectedPOIs;
@@ -408,16 +425,16 @@ function getPOIs(keyWord,compassHeading) {
 			if(parameters.elements.length>0){
 				$.each(parameters.elements, function(i, poi) {
 					var distance = calcDistance(poi.lat, poi.lon, lat, lon);
-						if (distance <= radius) {
-							var name = getKindOfPoi(keyWord.split("=")[1]);
-							distance = Math.round(1000 * distance);
-							var clock = getClock(calcCompassBearing(poi.lat,poi.lon,lat,lon, compassHeading));
-							var entry = new streetViewEntry(poi.id, poi.lat, poi.lon, name, clock,distance,poi.tags);
-							streetViewContent.push(entry);
-						}
-						if(i == (parameters.elements.length-1)){
-							deferred.resolve();
-						}
+					if (distance <= radius) {
+						var name = getKindOfPoi(keyWord.split("=")[1]);
+						distance = Math.round(1000 * distance);
+						var clock = getClock(calcCompassBearing(poi.lat,poi.lon,lat,lon, compassHeading));
+						var entry = new streetViewEntry(poi.id, poi.lat, poi.lon, name, clock,distance,poi.tags);
+						streetViewContent.push(entry);
+					}
+					if(i == (parameters.elements.length-1)){
+						deferred.resolve();
+					}
 				});
 			}else{
 				deferred.resolve();
@@ -426,6 +443,7 @@ function getPOIs(keyWord,compassHeading) {
 	});
 	return deferred;
 }
+
 function alreadyFound(nodeid, found){
 	var found = false;
 	$.each(found, function(index, elem){
@@ -437,12 +455,11 @@ function alreadyFound(nodeid, found){
 			return found;
 		}
 	});
-	
 }
 
 function findWays(opWays, opNodes, lat, lon){
 	$.each(opWays, function(i, overpassResult){
-		var nodes = new Array();
+		var nodes = [];
 		//get all nodes of way
 		$.each(overpassResult.nodes, function(index, node){
 			//get node info but not for the last
@@ -455,12 +472,13 @@ function findWays(opWays, opNodes, lat, lon){
 			}
 		});
 	});
-	
 }
+
 function findMatchingWay(lat,lon){
 	var pointA, segStart, segEnd; 
 	var smallestDist;
 	var nearestSegment;
+	var candidates = [];
 	var nextNode;
 	$.each(wayVectors, function(index, wayVec){
 		//for each wayVec.nodes
@@ -473,23 +491,21 @@ function findMatchingWay(lat,lon){
 					segStart = new point(node.x, node.y);
 					segEnd = new point(nextNode.x, nextNode.y);
 					var distToSegmentResult = distToSegment(pointA,segStart,segEnd);
-					if(index === 0){
-						 smallestDist = distToSegmentResult;
-						 nearestSegment = new distSegmentEntry(node.x, node.y,nextNode.x, nextNode.y,lat,lon, distToSegmentResult, wayVec.wayId, wayVec);
-					}
-					if(distToSegmentResult <= smallestDist){
-						 smallestDist = distToSegmentResult;
-						 nearestSegment = new distSegmentEntry(node.x, node.y,nextNode.x, nextNode.y,lat,lon, distToSegmentResult, wayVec.wayId, wayVec);
-					}
+					nearestSegment = new distSegmentEntry(node.x, node.y,nextNode.x, nextNode.y,lat,lon, distToSegmentResult, wayVec.wayId, wayVec);
+					candidates.push(nearestSegment);
 				}
 			});
-		}else
+		}else{
 			if(index == wayVectors.length-1){
 				return;
 			}
+		}
 	});
-	if(typeof nearestSegment != "undefined"){
-		return nearestSegment;
+	
+	if(candidates.length!==0){
+		candidates.sort(distanceSort);
+		console.log(candidates);
+		return candidates[0];
 	}else{
 		console.log("no nearestsegment found");
 		return "undefined";
@@ -505,9 +521,6 @@ function getNodeInfo(nodeId, allNodes) {
 	});
 	return resultNode
 }
-
-
-
 
 function getSide(compass, startPoint, endPoint, page){
 	var startBearing = calcBearing(lat, lon, startPoint.lat, startPoint.lon);
@@ -531,43 +544,56 @@ function getSide(compass, startPoint, endPoint, page){
 		if(bool){
 			$.mobile.changePage($("#streetViewLeft"), "none");
 		}else{
+			//change to view on right side
 			$.mobile.changePage($("#streetViewRight"), "none");
 		}
 	}
 }
 
-function findIntersections(wayVectors,street,lat,lon) {
+function findIntersections(wayVectors,lat,lon) {
 	var intersections = [];
 	var isec;
 	$.each(wayVectors, function(i, element){
-		if(element.wayId!==street.wayId){
-			isec = getIntersection(element.nodes,street);
+		if(element.wayId!==locatedWay.wayId){
+			isec = getIntersection(element.nodes,locatedWay);
 			if (isec != -1) {
-				var intersectionEntry = new intersection(isec.x, isec.y, element.tags, street.way.tags, element.wayId, street.wayId );
+				var intersectionEntry = new intersection(isec.x, isec.y, element.tags, locatedWay.way.tags, "intersection", element.wayId, locatedWay.wayId );
 				var alreadyIn = isAlreadyInIntersections(intersectionEntry, intersections);
 				if (alreadyIn === -1) {
 					intersections.push(intersectionEntry);
 				}
 				else{
-					intersections = addWay(intersectionEntry, intersections, alreadyIn);
+					intersections = addIsecWay(intersectionEntry, intersections, alreadyIn);
 				}
 			}
 		}
+	});
+	//delete double names
+	$.each(intersections, function(index, isec){
+		var endtags = [];
+		$.each(isec.tags, function(i, wayName){
+			if($.inArray(wayName, isec.tags)===i){
+				endtags.push(wayName);
+			}
+		});
+		isec.tags= endtags;
 	});
 	console.log(intersections);
 	return intersections;
 }
 
-function addWay(isecEntry, intersections, index){
+function addIsecWay(isecEntry, intersections, index){
 	var newIntersections = [];
 	newIntersections = newIntersections.concat(intersections);
 	
 	for(var k=0; k<intersections[index].wayIds.length;k++){
 		if(isecEntry.wayIds[0]!==intersections[index].wayIds[k]){
 			newIntersections[index].wayIds.push(isecEntry.wayIds[0]);
+			newIntersections[index].tags.push(isecEntry.tags[0]);
 			break;
 		}else if(isecEntry.wayIds[1]!==intersections[index].wayIds[k]){
 			newIntersections[index].wayIds.push(isecEntry.wayIds[1]);
+			newIntersections[index].tags.push(isecEntry.tags[1]);
 			break;
 		}
 	}
@@ -576,9 +602,11 @@ function addWay(isecEntry, intersections, index){
 function getIntersection(nodeArray, way) {
 	var isec = -1;
 	$.each(nodeArray, function(index, node){
-		if ((node.x === way.startlat) && (node.y === way.startlon)||(node.x === way.endLat) && (node.y === way.endLon)) {
-			isec = node;
-		}
+		$.each(way.way.nodes, function(i, wayNode){
+			if ((node.x === wayNode.x) && (node.y === wayNode.y)||(node.x === wayNode.x) && (node.y === wayNode.y)) {
+				isec = node;
+			}
+		});
 	});
 	return isec;
 }
@@ -591,28 +619,20 @@ function isAlreadyInIntersections(intersection, intersections) {
 	});
 	return alreadyIn;
 }
-function intersection(lat, lon, wayTagsA, wayTagsB, wayIdA, wayIdB) {
-	var ways = [];
-	var wayIds = [];
-	this.lat = lat;
-	this.lon = lon;
-	ways.push(getTypeOfWay(wayTagsA));
-	ways.push(getTypeOfWay(wayTagsB));
-	this.tags = ways;
-	this.keyword = "intersection";
-	wayIds.push(wayIdA);
-	wayIds.push(wayIdB);
-	this.wayIds = wayIds;
-}
 
 function getIsecWarnings(wayVectors){
 	var warnings = [];
 	$.each(wayVectors, function(index, way){
-		for(var i=index+1; i<wayVectors.length; i++){
-			var nextWay =  wayVectors[i];
-			var warning = testOverlap(way, nextWay);
-			if(warning.length!==0)
-				warnings.push(warning);
+		if((way.tags.bridge!=="yes")&&(way.tags.tunnel!=="yes")){
+			for(var i=index+1; i<wayVectors.length; i++){
+				var nextWay = wayVectors[i];
+				if((nextWay.tags.bridge!=="yes")&&(nextWay.tags.tunnel!=="yes")){
+					var warning = testOverlap(way, nextWay);
+					$.each(warning, function(index, warn){
+						warnings.push(warn);
+					});
+				}
+			}
 		}
 	});
 	return warnings;
@@ -629,7 +649,7 @@ function testOverlap(wayA, wayB){
 			
 			var warning = getOverlaps(line1Start.x,line1Start.y,line1End.x, line1End.y,line2Start.x,line2Start.y,line2End.x,line2End.y);
 			if(warning!==null){
-				warnings.push(new intersection(warning.x, warning.y, wayA.tags, wayB.tags));
+				warnings.push(new warn(warning.x, warning.y, wayA.tags, wayB.tags,"warning", wayA.wayId,wayB.wayId));
 			}
 		}
 	}
@@ -658,8 +678,12 @@ function getOverlaps(x1,y1,x2,y2, x3,y3,x4,y4){
 		if((wy>0 && wy<1)&&(wx>0 && wx<1)){
 			var isecX = (parseFloat(x1)+wy*ux);
 			var isecY = (parseFloat(y1)+wy*uy);
-			//console.log(x1+", "+y1+" "+x2+", "+y2+" "+x3+", "+y3+" "+x4+", "+y4);
-			return new point(isecX, isecY);
+			//if not a shared node
+			if(!((x1==x3 && y1==y3)||(x1==x4 && y1==y4)||(x2==x3 && y2==y3)||(x2==x4 && y2==y4))){
+				isecX = Math.round(isecX * 10000000) / 10000000;
+				isecY = Math.round(isecY * 10000000) / 10000000;
+				return new point(isecX, isecY);
+			}
 		}
 	}
 	return null;
