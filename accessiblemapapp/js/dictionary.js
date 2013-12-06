@@ -3,24 +3,28 @@ function getKindOfPoi(string) {
 		string = string.split('=')[1];
 	}
 	switch (string) {
+	case "waste_basket":
+		return "Abfalleimer";
 	case "tree":
 		return "Baum";
-	case "bench":
-		return "Sitzbank";
+	case "roadwork":
+		return "Baustelle";
 	case "fountain":
 		return "Brunnen";
 	case "waste_disposal":
 		return "Container";
-	case "traffic_signals":
-		return "Lichtsignal";
-	case "waste_basket":
-		return "Abfalleimer";
 	case "crossing":
 		return "Fussgängerstreifen";
 	case "hydrant":
 		return "Hydrant";
-	case "constructionWork":
-		return "Baustelle";
+	case "intersection":
+		return "Kreuzung";
+	case "traffic_signals":
+		return "Lichtsignal";
+	case "bench":
+		return "Sitzbank";
+	case "warning":
+		return "Unvermerkte Kreuzung";
 	
 	case "bar":
 		return "Bar";
@@ -94,14 +98,10 @@ function getKindOfPoi(string) {
 	case "dentist":
 		return "Zahnarzt";
 		
-	case "intersection":
-		return "Kreuzung";
-		
 	default:
 		return "Unbekannt";
 	}
 }
-
 
 function getDirectionForDegrees(deg) {
 	
@@ -125,6 +125,7 @@ function getDirectionForDegrees(deg) {
 		return "";
 	}
 }
+
 function getSurface(surface) {
 	var type = "-";
 	switch (surface) {
