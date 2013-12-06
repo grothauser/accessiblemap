@@ -1,5 +1,9 @@
 var orientationContent = [];
-function enricheWays(route, intersections){
+var roadworks = [];
+var OPDistance = 0.3;
+var today;	
+
+function enricheWays(route){
 	orientationContent = [];
 	var deferred = $.Deferred();
 	var enrichedRoute = [];
@@ -16,15 +20,13 @@ function enricheWays(route, intersections){
 				
 				var poisInRightStreetSegment = getPointsInBuffer(sideBuffers[1], orientationContent,  coordinate.lat,coordinate.lon, coordinate.distance);
 				poisInRightStreetSegment.sort(distanceSort);
-				
+
 				if(typeof coordinate.way != "undefined") {
-				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction,  coordinate.lat,coordinate.lon,coordinate.way.tags, poisInLeftStreetSegment, poisInRightStreetSegment,coordinate.way));
-			
+					enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction,  coordinate.lat,coordinate.lon,coordinate.way.tags, poisInLeftStreetSegment, poisInRightStreetSegment,coordinate.way));
 				}else{
-					enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction,  coordinate.lat,coordinate.lon,coordinate.way.tags, poisInLeftStreetSegment, poisInRightStreetSegment,""));
-					
+					enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction,  coordinate.lat,coordinate.lon, "", poisInLeftStreetSegment, poisInRightStreetSegment,""));
 				}
-			}	
+			}
 			else if(index === (route.length-1)){
 				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, "", "", "",""));
 				deferred.resolve(enrichedRoute);
@@ -34,14 +36,30 @@ function enricheWays(route, intersections){
 	return deferred;
 }
 
-function enrichStreetWay(route, intersections, warnings, locLat, locLon){
+function enrichStreetWay(locatedWay, intersections, warnings, locLat, locLon){
 	var deferred = $.Deferred();
+	var route = [];
+	//get all street nodes as route
+	$.each(locatedWay.way.nodes, function(index, node){
+		if(index<locatedWay.way.nodes.length-1){
+			var nextNode = locatedWay.way.nodes[index+1];
+			var dist = calcDistance(node.x,  node.y, nextNode.x, nextNode.y);
+			route.push(new tempEntry("", dist, node.x, node.y, locatedWay.way));
+		}else{
+			route.push(new tempEntry("", "", node.x, node.y, locatedWay.way));
+		}
+	})
+	//get Date to test, if roadworks are actual
+	today = new Date();
+	var day = today.getDate();
+	var month = today.getMonth()+1; //January is 0!
+	today = today.getFullYear() + (month<10 ? '0' : '') + month + (day<10 ? '0' : '') + day;
+	
 	var enrichedRoute = [];
 	var selectedPois = getSelectedRoutingElements();
 	getOrientationPoints(route, selectedPois, intersections).done(function(){
 		var poisOnLeftSide = [];
 		var poisOnRightSide = [];
-		console.log(selectedPois);
 		//add intersections if selected
 		if($.inArray("intersections", selectedPois)!==-1){
 			$.each(intersections, function(index, isec){
@@ -58,22 +76,85 @@ function enrichStreetWay(route, intersections, warnings, locLat, locLon){
 				poisOnRightSide.push(new orientationEntry(warn.lat, warn.lon, warn.keyword, warn.tags, dist));
 			});
 		}
-		var degreesToNext = calcBearing(route[0].lat, route[0].lon,	route[1].lat, route[1].lon);
-		var sideBuffers = calculateSideBuffers(route[0].lat, route[0].lon, route[1].lat, route[1].lon, degreesToNext);
+		//add roadworks
+		if($.inArray("roadworks", selectedPois)!==-1){
+			$.each(roadworks, function(index, roadwork){
+				var dist = calcDistance(locLat, locLon, roadwork.lat, roadwork.lon);
+				poisOnLeftSide.push(new orientationEntry(roadwork.lat, roadwork.lon, roadwork.keyword, roadwork.tags, dist));
+				poisOnRightSide.push(new orientationEntry(roadwork.lat, roadwork.lon, roadwork.keyword, roadwork.tags, dist));
+			});
+		}
+		//add orientation points
+		var routeDistances = getNodeDistances(locatedWay);
+		$.each(locatedWay.way.nodes, function(i, node){
+			var distToLoc = routeDistances[i];
+			//check if dist < 300 meter and not last node			
+			if(distToLoc<OPDistance && i<(locatedWay.way.nodes.length-1)){
+				var nextNode = locatedWay.way.nodes[i+1];
+				var distToNext = calcDistance(node.x, node.y, nextNode.x, nextNode.y);
+				var degreesToNext = calcBearing(node.x, node.y, nextNode.x, nextNode.y);
+				var sideBuffers = calculateSideBuffers(node.x, node.y, nextNode.x, nextNode.y, degreesToNext);
+				
+				var poisInLeftStreetSegment = getPointsInBuffer(sideBuffers[0], orientationContent, locLat, locLon, OPDistance);
+				poisOnLeftSide = poisOnLeftSide.concat(poisInLeftStreetSegment);
+				
+				var poisInRightStreetSegment = getPointsInBuffer(sideBuffers[1], orientationContent,  locLat, locLon, OPDistance);
+				poisOnRightSide = poisOnRightSide.concat(poisInRightStreetSegment);
+			}
+		});
+		poisOnLeftSide.sort(distanceSort);
+		poisOnRightSide.sort(distanceSort);
+		//delete doubles
+		poisOnLeftSide = deleteDoubles(poisOnLeftSide)
+		poisOnRightSide = deleteDoubles(poisOnRightSide);
 		
-		var poisInLeftStreetSegment = getPointsInBuffer(sideBuffers[0], orientationContent, locLat, locLon, 300);
-		poisInLeftStreetSegment = poisOnLeftSide.concat(poisInLeftStreetSegment);
-		poisInLeftStreetSegment.sort(distanceSort);
+		enrichedRoute.push(new finalElement("", "", locLat, locLon, locatedWay.way.tags, poisOnLeftSide, poisOnRightSide));
 		
-		var poisInRightStreetSegment = getPointsInBuffer(sideBuffers[1], orientationContent,  locLat, locLon, 300);
-		poisInRightStreetSegment = poisOnRightSide.concat(poisInRightStreetSegment);
-		poisInRightStreetSegment.sort(distanceSort);
-		
-		enrichedRoute.push(new finalElement("", "", locLat, locLon, route[0].way.tags, poisInLeftStreetSegment, poisInRightStreetSegment));
 		deferred.resolve(enrichedRoute);
 	});
 	return deferred;
 }
+
+function getNodeDistances(locatedWay){
+	var distances = [];
+	var distance = 0;
+	var nodes = locatedWay.way.nodes;
+	$.each( nodes, function(index, node){
+		if(node.x===locatedWay.startlat && node.y===locatedWay.startlon){
+			distance = calcDistance(node.x, node.y, locatedWay.matchedLat, locatedWay.matchedLon);
+			distances.push(distance);
+			for(var i=index; i>0; i--){
+				distance += calcDistance(nodes[i].x, nodes[i].y, nodes[i-1].x, nodes[i-1].y);
+				distances.push(distance);
+			}
+			distances.reverse();
+			var distance = 0;
+		}
+		else if(node.x===locatedWay.endLat && node.y===locatedWay.endLon){
+			distance = calcDistance(node.x, node.y, locatedWay.matchedLat, locatedWay.matchedLon);
+			distances.push(distance);
+			for(var i=index; i<locatedWay.way.nodes.length-1; i++){
+				distance += calcDistance(nodes[i].x, nodes[i].y, nodes[i+1].x, nodes[i+1].y);
+				distances.push(distance);
+			}
+		}
+	});
+	return distances;
+}
+
+function deleteDoubles(poiList){
+	var cleanedList = [];
+	for(var index=0; index <poiList.length-1; index++){
+		var nextPoi = poiList[index+1];
+		if((poiList[index].lat!==nextPoi.lat) && (poiList[index]!==nextPoi.lon)){
+			cleanedList.push(poiList[index]);
+		}
+	}
+	cleanedList.push(poiList[poiList.length-1]);
+	console.log(cleanedList);
+	return cleanedList;
+}
+
 function finalElement(distance,direction,lat,lon,tags,opsLeft, opsRight,way){
 	this.distance = distance;
 	this.direction = direction;
@@ -97,7 +178,9 @@ function getOrientationPoints(route,selectedPoints, intersections){
 			if((keyword == "natural=tree") &&( bool) ){
 				findTreeStreet(bbox).done(function(data){
 					counter--;
-					orientationContent.push(new orientationEntry(data.lat, data.lon, keyword, data.tags));
+					$.each(data, function(k, tree){
+						orientationContent.push(new orientationEntry(tree.lat, tree.lon, keyword, tree.tags));
+					});
 					if(counter === 0){
 						deferred.resolve();
 					}
@@ -127,24 +210,59 @@ function getOrientationPoints(route,selectedPoints, intersections){
 function getRoadworks(route){
 	var deferred = $.Deferred();
 	$.each(route, function(index, coord){
-		console.log(coord.way.wayId);
 		$.ajax({
-			url: 'http://trobdb.hsr.ch/getTrafficObstruction?osmid='+coord.way.wayId,
+			url: "\js\\proxy.php?url="
+				+ encodeURIComponent('http://trobdb.hsr.ch/getTrafficObstruction?osmid='+coord.way.wayId),
 			type : 'GET',
-			dataType : 'jsonp',
+			dataType : 'json',
 			error : function(data) {
 				console.error("error");
 				deferred.resolve();
 			},
 			success : function(data) {
-				console.log(data);
-				var entry = new orientationEntry(data.lat, data.lon, keyWord, data.tags);
-				orientationContent.push(entry);
+				data = data.features;
+				$.each(data, function(index, roadwork){
+					var startDate = roadwork.properties.traffic_obstruction_start.split(" ")[0];
+					var tempString = startDate.split("-");
+					startDate = tempString[0]+tempString[1]+tempString[2];
+					var endDate = roadwork.properties.traffic_obstruction_end.split(" ")[0];
+					var tempString = endDate.split("-");
+					endDate = tempString[0]+tempString[1]+tempString[2];
+					
+					//test if roadwork is in process
+					if(startDate<today && endDate>today){
+						var nearestNode = findNearestRoadworkNode(coord, roadwork.geometry.coordinates);
+						var entry = new orientationEntry(nearestNode[1], nearestNode[0], "roadwork", roadwork.properties);
+						if(roadworks.length===0){
+							roadworks.push(entry);
+						}
+						//don't push duplicates
+						$.each(roadworks, function(i, rw){
+							if(!(entry.lat === rw.lat)&&!(entry.lon === rw.lon)){
+								roadworks.push(entry);
+							}
+						});
+					}
+				});
 				deferred.resolve();
 			},
 		});
 	});
 	return deferred;
+}
+
+function findNearestRoadworkNode(coord, polyPoints){
+	var distance;
+	var  minPoint = polyPoints[0];
+	var min = calcDistance(coord.lat, coord.lon, polyPoints[0].lat, polyPoints[0].lon);
+	$.each(polyPoints, function(index, point){
+		distance = calcDistance(coord.lat, coord.lon, point.lat, point.lon);
+		if(distance<min){
+			min = distance;
+			minPoint = point;
+		}
+	});
+	return minPoint;
 }
 
 function isInZurich(route){
@@ -166,7 +284,6 @@ function isInZurich(route){
 			}
 			//check for each segment if it is in zurich
 			$.each(route, function(index, coordinate){
-				console.log(coordinate.lat + "," + coordinate.lon + " in zurich: " + isPip(coordinate.lat, coordinate.lon, multipolyCoords));
 				zuricharray.push(isPip(coordinate.lat, coordinate.lon, multipolyCoords));
 				if(zuricharray.length === route.length){
 					d.resolve(isPip(coordinate.lat, coordinate.lon, multipolyCoords));
@@ -176,4 +293,30 @@ function isInZurich(route){
 	});
 	return d;
 }
-
+function getPoisForKeyWord(bbox, keyWord){
+	var deferred = $.Deferred();
+	$.ajax({
+		type : 'GET',
+		url : "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];node["+keyWord+"]("+bbox[1]+","+bbox[0]+","+bbox[3]+","+bbox[2]+");out;",
+		dataType : 'json',
+		jsonp : 'json_callback',
+		error : function(parameters) {
+			console.error("error");
+		},
+		success : function(parameters) {
+			if(parameters.elements.length > 0){
+				$.each(parameters.elements, function(index, data){
+					var entry = new orientationEntry(data.lat, data.lon, keyWord, data.tags);
+					orientationContent.push(entry);
+					if(index == (parameters.elements.length-1)){
+						deferred.resolve("");
+					}
+				});
+			}
+			else{
+				deferred.resolve("0");
+			}
+		},
+	});
+	return deferred;
+}
