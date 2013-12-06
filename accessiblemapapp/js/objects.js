@@ -72,3 +72,17 @@ function coordPair(lat, lon,id) {
 	this.lon = lon;
 	this.id = id;
 }
+
+function intersection(lat, lon, wayTagsA, wayTagsB, keyword, wayIdA, wayIdB) {
+	var ways = [];
+	var wayIds = [];
+	this.lat = lat;
+	this.lon = lon;
+	ways.push(getTypeOfWay(wayTagsA));
+	ways.push(getTypeOfWay(wayTagsB));
+	this.tags = ways;
+	this.keyword = keyword;
+	wayIds.push(wayIdA);
+	wayIds.push(wayIdB);
+	this.wayIds = wayIds;
+}
