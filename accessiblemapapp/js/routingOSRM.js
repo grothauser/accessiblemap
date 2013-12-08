@@ -26,7 +26,6 @@ function extractCoordinates(data){
 		getSide(compval, coords[0], coords[1], "routing");
 	});
 	fillRouteWithOverpassData(coords);
-	console.log(coords);
 	return coords;
 }
 function fillRouteWithOverpassData(routeCoords){
@@ -78,7 +77,6 @@ function searchNearestNodes(){
 		
 	});
 	});
-	console.log(nodesOfRoute);
 }
 function alreadyInWays(way){
 	 var result = $.grep(allWaysWithNodeCoords, function(path){ return path.wayId == way.wayId; });
@@ -214,7 +212,6 @@ function checkRouteOSRM(){
 			}
 		}
 	});
-	console.log(wayPerCord);
 }
 
 function getWaysForNode(nodeId) {
