@@ -7,19 +7,19 @@ function initPage(){
 				if ($('#locationOutput').html() == "") {
 					getGPSLocation();
 				}
-
+			    $.mobile.collapsible.prototype.options.expandCueText = " durch Klicken aufklappen";
+			    $.mobile.collapsible.prototype.options.inset = false;
 				$.mobile.fixedToolbars.setTouchToggleEnabled(false);
 			});
 			 $(document).bind('#location','pagecreate', function(){
 				 if ($('#locationOutput').html() == "") {
 					getGPSLocation();
 				}
-				//set saved state from localstorage for roadwidth and search radius
 				$('#select-choice-radius').val(getRadius());
 
 			 });
 			
-			$('#location').live('pageinit', function() {
+			$(document).on('pageinit','#location', function() {
 				console.log("pageinit location");
 				 if ($('#locationOutput').html() == "") {
 						getGPSLocation();
@@ -44,31 +44,26 @@ function initPage(){
 				 
 			});
 			
-//			$( '#streetViewLeft' ).live( "pageinit", function( event ) {
-//						$('#streetviewContent').html("");
-//			});
-//			
-			$('#routing' ).live( "pageinit" ,function( event ) {
-				console.log("roting");
-			//	getGPSLocation();
-				//locatedLat = 47.2300422;
-				//locatedLon = 8.8260246;
-				//getRoute(47.2300422,8.8260246,"47.2290428,8.8244257");
-			});
+			
 	}
 			
 
 
 function setListener(){
-	console.log("setting listener");
 		$('input[name=routeChoiceLeft]').change(function(event) {
 			if ($('#selectedPOIButtonLeft').length) {
 				$('#selectedPOIButtonLeft  .ui-btn-text').text("Navigieren nach " + $(this).val());
 				$('#aroundLeft').trigger('create');
 			} else {
-				$('#aroundLeft').append("<a href=\"#\" data-transition=\"none\" data-role=\"button\"" + "data-icon=\"arrow-u\" id=\"selectedPOIButtonLeft\" >Navigieren nach " +$(this).val() + "</a>");
+				$('#aroundLeft').append('<a href="#" data-transition="none" data-role="button" "data-icon="arrow-u" id="selectedPOIButtonLeft" >Navigieren nach ' +$(this).val() + '</a>');
 				$('#selectedPOIButtonLeft').bind('click', function(){
-					getRoute(locatedLat, locatedLon, $('input[name=routeChoiceLeft]:checked').attr('id'));
+					var id = $('input[name=routeChoiceLeft]:checked').attr('id');
+					var destarr = id.split(',');
+					destlat = destarr[0];
+					destlon = destarr[1];
+
+					getRoute(locatedLat, locatedLon, destlat,destlon );
+
 					$('#titleroutingleft').text("Route von " + $('#locationOutput').text() + " nach " +$('input[name=routeChoiceLeft]:checked').val() );
 					$('#titleroutingleft').trigger('create');
 					$('#titleroutingright').text("Route von "+ $('#locationOutput').text() + " nach " +$('input[name=routeChoiceLeft]:checked').val() );
@@ -80,13 +75,17 @@ function setListener(){
 
 			$("input[name='routeChoiceRight']").change(function(event) {
 				if ($('#selectedPOIButtonRight').length) {
-					console.log("button rechts gibts");
 					$('#selectedPOIButtonRight  .ui-btn-text').text("Navigieren nach " +$(this).val());
 					$('#aroundRight').trigger('create');
 				} else {
-					$('#aroundRight').append("<a href=\"#routing\" data-transition=\"none\" data-role=\"button\"" + "data-icon=\"arrow-u\" id=\"selectedPOIButtonRight\" >Navigieren nach " + $(this).val() + "</a>");
+					$('#aroundRight').append('<a href="#" data-transition="none" data-role="button" "data-icon="arrow-u" id="selectedPOIButtonRight" >Navigieren nach ' +$(this).val() + '</a>');
 					$('#selectedPOIButtonRight').bind('click', function(){
-						getRoute(locatedLat, locatedLon, $('input[name=routeChoiceRight]:checked').attr('id'));
+						var id = $('input[name=routeChoiceRight]:checked').attr('id');
+						var destarr = id.split(',');
+						destlat = destarr[0];
+						destlon = destarr[1];
+						getRoute(locatedLat, locatedLon, destlat,destlon );
+						
 						$('#titleroutingright').text("Route von "+ $('#locationOutput').text() + " nach " +$('input[name=routeChoiceRight]:checked').val() );
 						$('#titleroutingright').trigger('create');	
 						$('#titleroutingleft').text("Route von " + $('#locationOutput').text() + " nach " +$('input[name=routeChoiceRight]:checked').val() );

@@ -3,7 +3,7 @@ var routeStart, routeEnd;
 
 function refreshRoute(){
 	getGPSLocation();
-	getRoute(locatedLat, locatedLon, destlat+","+destlon);
+	getRoute(locatedLat, locatedLon, destlat,destlon);
 	$( "#routingDirectionsRight").empty();
 	$( "#routingDirections").empty();
 }
@@ -22,22 +22,20 @@ function reverseRoute(){
 	
 	locatedLat = routeEnd.x;
 	locatedLon = routeEnd.y;
+	destlat = routeStart.x;
+	destlon = routeStart.y;
 
-	getRoute(routeEnd.x, routeEnd.y,routeStart.x+","+ routeStart.y);
-
+	getRoute(routeEnd.x, routeEnd.y,routeStart.x, routeStart.y);
 }
-function getRoute(lat,lon,destinationCoords) {
-	var destarr = destinationCoords.split(',');
-	destlat = destarr[0];
-	destlon = destarr[1];
-	
+function getRoute(lat,lon,destlat, destlon) {
+		
 	routeStart = new point(lat,lon);
 	routeEnd = new point(destlat,destlon);
 	
 	locatedLat = routeStart.x;
 	locatedLon = routeStart.y;
 
-	routeOSRM(lat,lon,destlat,destlon);
+	getRouteOSRM(47.229801, 8.826978,47.2303967, 8.8213076);
 }
 function writeHTMLButtons(){
 	$('#routingviewright').html('<a href="#" data-icon="refresh" onClick="refreshRoute();"  data-role="button" >Route aktualisieren</a>'+
@@ -56,79 +54,70 @@ function writeRoute(cords) {
 	writeHTMLButtons();
 	var tempRoute = [];
 	var distance,direction,degreesToNext;
-	var overNextCoordinate, degreesToOverNext, azimuth;
+	var degreesToOverNext, azimuth;
 
 	var nextCoordinate = cords[0];
+	var overNextCoordinate = cords[1];
 	distance = calcDistance(routeStart.x, routeStart.y,	nextCoordinate.lat, nextCoordinate.lon);
 	
 	//we need another step to get to the start of the route
 	//if we're on a mobile device we have a compass
-	if(detectmob()){
-			checkCompass().done(function(compassvalue){
-				degreesToNext = calcCompassBearing(nextCoordinate.lat, nextCoordinate.lon,locatedLat, locatedLon,compassvalue);
-				
-				overNextCoordinate = cords[1];
-				degreesToOverNext =normaliseBearing( calcBearing(nextCoordinate.lat, nextCoordinate.lon,overNextCoordinate.lat, overNextCoordinate.lon));
-				
-				azimuth = getAzimuth(degreesToNext,degreesToOverNext);
-
-				direction = getDirectionForDegrees(degreesToNext) + ", dann " + getDirectionForDegrees(azimuth)+".";
-				tempRoute.push(new tempEntry(direction, distance, locatedLat, locatedLon,degreesToNext,""));
-			});
-		}
-		else{
-			degreesToNext = calcCompassBearing(nextCoordinate.lat, nextCoordinate.lon,locatedLat, locatedLon,0);
+	checkCompass().done(function(compassvalue){
+		if(distance >= 0.0005){
+			degreesToNext = calcCompassBearing(nextCoordinate.lat, nextCoordinate.lon,locatedLat, locatedLon,compassvalue);
 			
-			overNextCoordinate = cords[1];
 			degreesToOverNext =normaliseBearing( calcBearing(nextCoordinate.lat, nextCoordinate.lon,overNextCoordinate.lat, overNextCoordinate.lon));
 			
 			azimuth = getAzimuth(degreesToNext,degreesToOverNext);
 
-			direction = getDirectionForDegrees(degreesToNext) + ", dann " + getDirectionForDegrees(azimuth)+".";
-			tempRoute.push(new tempEntry(direction, distance, locatedLat, locatedLon,degreesToNext,""));
-	}
-	//rest of the route
-	$.each(cords, function(index, coordinate) {
-		if (index < (cords.length - 2)) {
-			nextCoordinate = cords[index + 1];
-			degreesToNext = calcBearing(coordinate.lat, coordinate.lon,nextCoordinate.lat, nextCoordinate.lon);
-			
-			overNextCoordinate =  cords[index + 2];
-			degreesToOverNext = calcBearing(nextCoordinate.lat, nextCoordinate.lon,overNextCoordinate.lat, overNextCoordinate.lon, 0);
-			azimuth = getAzimuth(degreesToNext,degreesToOverNext);
-			
-			direction = getDirectionForDegrees(azimuth);
-			distance = calcDistance(coordinate.lat, coordinate.lon,	nextCoordinate.lat, nextCoordinate.lon);
-			
-			var way = getWayMatchForCord(coordinate.lat, coordinate.lon);
-			
-			if(typeof way != "undefined"){
+			direction = getDirectionForDegrees(degreesToNext) + ", " + getDirectionForDegrees(azimuth)+".";
+		}else{
+			degreesToNext = calcCompassBearing(overNextCoordinate.lat, overNextCoordinate.lon,locatedLat, locatedLon, compassvalue);
+			direction = getDirectionForDegrees(degreesToNext);
+		}
+		tempRoute.push(new tempEntry(direction, distance, locatedLat, locatedLon,degreesToNext,""));
+
+		//rest of the route
+		$.each(cords, function(index, coordinate) {
+			if (index < (cords.length - 2)) {
+				nextCoordinate = cords[index + 1];
+				degreesToNext = calcBearing(coordinate.lat, coordinate.lon,nextCoordinate.lat, nextCoordinate.lon);
+				
+				overNextCoordinate =  cords[index + 2];
+				degreesToOverNext = calcBearing(nextCoordinate.lat, nextCoordinate.lon,overNextCoordinate.lat, overNextCoordinate.lon, 0);
+				azimuth = getAzimuth(degreesToNext,degreesToOverNext);
+				
+				direction = getDirectionForDegrees(azimuth);
+				distance = calcDistance(coordinate.lat, coordinate.lon,	nextCoordinate.lat, nextCoordinate.lon);
+				
+				var way = getWayMatchForCord(coordinate.lat, coordinate.lon);
+				
+				if(typeof way != "undefined"){
+					tempRoute.push(new tempEntry(direction, distance, 	coordinate.lat, coordinate.lon,degreesToNext,way));
+				}
+				else{
+					tempRoute.push(new tempEntry(direction, distance, 	coordinate.lat, coordinate.lon,degreesToNext,""));
+				}
+			}else if(index == (cords.length-2)){
+				nextCoordinate = cords[index + 1];
+				degreesToNext = normaliseBearing(calcBearing(coordinate.lat, coordinate.lon,nextCoordinate.lat, nextCoordinate.lon));
+				distance = calcDistance(coordinate.lat, coordinate.lon,	nextCoordinate.lat, nextCoordinate.lon);
+				direction = getDirectionForDegrees(degreesToNext);
+				
+				var way = getWayMatchForCord(coordinate.lat, coordinate.lon);
 				tempRoute.push(new tempEntry(direction, distance, 	coordinate.lat, coordinate.lon,degreesToNext,way));
 			}
 			else{
-				tempRoute.push(new tempEntry(direction, distance, 	coordinate.lat, coordinate.lon,degreesToNext,""));
+				tempRoute.push(new tempEntry("end", 0, 	coordinate.lat, coordinate.lon,"",""));
+				
 			}
-		}else if(index == (cords.length-2)){
-			nextCoordinate = cords[index + 1];
-			degreesToNext = normaliseBearing(calcBearing(coordinate.lat, coordinate.lon,nextCoordinate.lat, nextCoordinate.lon));
-			distance = calcDistance(coordinate.lat, coordinate.lon,	nextCoordinate.lat, nextCoordinate.lon);
-			direction = getDirectionForDegrees(degreesToNext);
-			
-			var way = getWayMatchForCord(coordinate.lat, coordinate.lon);
-			tempRoute.push(new tempEntry(direction, distance, 	coordinate.lat, coordinate.lon,degreesToNext,way));
-		}
-		else{
-			tempRoute.push(new tempEntry("end", 0, 	coordinate.lat, coordinate.lon,"",""));
-			
-		}
+		});
+		var cleanedRoute = cleanRoute(tempRoute);
+		enricheWays(cleanedRoute).done(function(enrichedRoute){
+			writeApp(enrichedRoute, "left");
+			writeApp(enrichedRoute, "right");
+		});
 	});
-	var cleanedRoute = cleanRoute(tempRoute);
-	console.log(cleanedRoute);
-	enricheWays(cleanedRoute).done(function(enrichedRoute){
-		writeApp(enrichedRoute, "left");
-		writeApp(enrichedRoute, "right");
-	});
-	
 }
 function waymatch(wayId, tags){
 	this.wayId = wayId;
@@ -167,78 +156,80 @@ function cleanRoute(route) {
 					if(isTheSame(routeStep,nextStep)){
 						// compare until not anymore the same direction and wayId
 						var counter = index +1;
-						while(isTheSame(routeStep, nextStep)){
+						var preStep = routeStep;
+						while(isTheSame(preStep, nextStep)){
 							var temp = distSum;
 							distSum = temp + nextStep.distance;
 							counter= counter + 1;
-							var nextStep = route[counter ];
+							preStep = nextStep;
+							nextStep = route[counter];
 							index++;
 						}
 						var finalDistance = Math.round(distSum*1000);
-						finalRoute.push(new tempEntry(routeStep.direction,finalDistance,  routeStep.lat,routeStep.lon,routeStep.bearingtoNext,routeStep.way));
+						finalRoute.push(new tempEntry(preStep.direction,finalDistance, routeStep.lat,routeStep.lon,preStep.bearingtoNext,routeStep.way));
 					}
 					else{
 						var finalDistance = Math.round(distSum*1000);
-						finalRoute.push(new tempEntry(routeStep.direction,finalDistance,  routeStep.lat,routeStep.lon,routeStep.bearingtoNext,routeStep.way));
+						finalRoute.push(new tempEntry(routeStep.direction,finalDistance, routeStep.lat,routeStep.lon,routeStep.bearingtoNext,routeStep.way));
 					}
-			} else if(index != 0){
+			} else if(index !== 0){
 				finalRoute.push(new tempEntry(routeStep.direction,Math.round(routeStep.distance*1000),routeStep.lat, routeStep.lon,routeStep.bearingtoNext,routeStep.way));
 			}else{
 				finalRoute.push(new tempEntry(routeStep.direction,Math.round(routeStep.distance*1000),routeStep.lat, routeStep.lon,routeStep.bearingtoNext,routeStep.way));
 				
 			}
 		}
+	console.log(finalRoute);
 	return finalRoute;
 }
 function isTheSame(routeStep,nextStep){
-	if((routeStep.direction == "geradeaus weiterlaufen")&& (nextStep.direction == "geradeaus weiterlaufen")
-			&& (routeStep.way.wayId = nextStep.way.wayId)){
-		return true;
+	if((typeof routeStep.way !== "undefined") && (routeStep.way != "") && (routeStep.direction === "geradeaus weiterlaufen")&& (typeof nextStep.way != "undefined") &&( nextStep.way !="")&&(routeStep.way.wayId === nextStep.way.wayId)){
+			return true;
+		
 	}else{
 		return false;
 	}
 }
 
-
-
 function writeApp(list, side) {
 	
 	var html = '<div data-role="collapsible-set" data-theme="c" data-content-theme="d">';	
 	$.each(list,function(index, routeStep) {
-			var indexIncr = (index + 1);
-			//first step
-			if (index == 0) {
-					var directionsplit = routeStep.direction.split(',');
-					html = html.concat('<p class="firstRouteStep">'+ indexIncr	+ ". Sie müssen " +directionsplit[0]+ ". Laufen Sie " + routeStep.distance +" Meter, "+directionsplit[1]+'. </p>');
-			} 
-			//last step
-			else if (index == (list.length - 1)) {
-					html = html.concat("<p class=\"firstRouteStep\">"+ indexIncr+ ". Sie haben Ihr Ziel erreicht.</p>");
-					if(side == "left"){
-						$('#routingDirections').html(html + "</div>");
-						$('#routingDirections').trigger('create');
-						$('#contentRouting').trigger('create');
-					}
-					else{
-						$('#routingDirectionsRight').html(html + "</div>");
-						$('#contentRoutingRight').trigger('create');
-					}
-			} else {
-					if(side == "left"){
-					   getCollapsibleForTags(indexIncr, routeStep, routeStep.opsLeft).done(function(collapsible){
-						   html = html.concat(collapsible);
-						});
-					}else{
-						  getCollapsibleForTags(indexIncr, routeStep, routeStep.opsRight).done(function(collapsible){
-							   html = html.concat(collapsible);
-						});
-					}
-					
+		var indexIncr = (index + 1);
+		//first step
+		if (index === 0) {
+			if(routeStep.distance !== 0){
+				var directionsplit = routeStep.direction.split(',');
+				html = html.concat('<p class="firstRouteStep">'+ indexIncr	+ ". Sie müssen " +directionsplit[0]+ ". Laufen Sie " + routeStep.distance +" Meter, dann "+directionsplit[1]+' </p>');
+			}else{
+				var direction = routeStep.direction.charAt(0).toUpperCase()+ routeStep.direction.slice(1);
+				html = html.concat('<p class="firstRouteStep">'+ indexIncr	+ ". "+direction+'. </p>');
 			}
-			
+				
+		} 
+		//last step
+		else if (index === (list.length - 1)) {
+				html = html.concat("<p class=\"firstRouteStep\">"+ indexIncr+ ". Sie haben Ihr Ziel erreicht.</p>");
+				if(side == "left"){
+					$('#routingDirections').html(html + "</div>");
+					$('#contentRouting').trigger('create');
+				}
+				else{
+					$('#routingDirectionsRight').html(html + "</div>");
+					$('#contentRoutingRight').trigger('create');
+				}
+		} else {
+			if(side == "left"){
+			   getCollapsibleForTags(indexIncr, routeStep, routeStep.opsLeft).done(function(collapsible){
+				   html = html.concat(collapsible);
+				});
+			}else{
+				  getCollapsibleForTags(indexIncr, routeStep, routeStep.opsRight).done(function(collapsible){
+					   html = html.concat(collapsible);
+				});
+			}
+		}
 	});
-
-	
 }
 function getCollapsibleForTags(index,routestep, navipois){
 	var deferred = $.Deferred();
@@ -248,20 +239,16 @@ function getCollapsibleForTags(index,routestep, navipois){
 	var head4;
 	var result = "";
 	if(navipois.length > 0){
-		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +". (" +routestep.way.wayId +")</h4>"; 
+		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +".</h4>"; 
 		collapsible = collapsible.concat(head4);
 		$.each(navipois, function(i, poi){
 			var distrounded = Math.round(poi.distance*1000);
 			var poiname = getKindOfPoi(poi.keyword) != "Unbekannt" ?  getKindOfPoi(poi.keyword) : poi.keyword;
 			paragraph = paragraph.concat( poiname + " nach " +distrounded + " Meter <br>");
-			if(i == (navipois.length-1)){
-				collapsible = collapsible.concat(paragraph);
-			}
 		});
-		
 	}
 	if(typeof routestep.tags != "undefined" ){
-		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +". ("+ routestep.way.wayId +")</h4>"; 
+		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +".</h4>"; 
 		if(typeof routestep.tags.surface != "undefined"){
 			var surface = getSurface(routestep.tags.surface);
 			if(routestep.tags.surface !="paved"){
@@ -269,7 +256,6 @@ function getCollapsibleForTags(index,routestep, navipois){
 				collapsible = collapsible.concat(head4);
 			}
 			paragraph = paragraph.concat("Belag: " + surface + "<br>");
-			collapsible = collapsible.concat(paragraph);
 			}
 		}
 		if(typeof routestep.tags.maxspeed != "undefined"){
@@ -277,19 +263,17 @@ function getCollapsibleForTags(index,routestep, navipois){
 				collapsible = collapsible.concat(head4);
 			}
 			paragraph = paragraph.concat("Höchstgeschwindigkeit: " + routestep.tags.maxspeed + " kmh <br>");
-			collapsible = collapsible.concat(paragraph);
 		} 
 	}
+	collapsible = collapsible.concat(paragraph);
 	if(paragraph != "<p class=\"firstRouteStep\">"){
 		collapsible = collapsible.concat("</p></div>");
 		deferred.resolve(collapsible);
 	}else{
-		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +". (" +routestep.way.wayId +")</p>"));
+		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +".</p>"));
 	}
 	return deferred;
 }
-
-
 
 function alreadyInWays(way) {
 	for ( var i = 0; i < waysOfRoute.length; i++) {
@@ -323,7 +307,6 @@ function getSelectedRoutingElements(){
 	return selectedPOIs;
 }
 
-
 function getWaysForCords(lat, lon) {
 	var waysArray = [];
 	for ( var j = 0; j < waysOfRoute.length; j++) {
@@ -354,7 +337,6 @@ function cordHasMatch( match){
 	return result;
 }
 
-
 function getCommonWays(waysForCords,waysForNextCords,lat,lon,nextLat,nextLon){
 	wayPerCord = new Array();
 	// check if they have a way in common
@@ -366,7 +348,5 @@ function getCommonWays(waysForCords,waysForNextCords,lat,lon,nextLat,nextLon){
 				wayPerCord.push(match);
 			}
 		}
-		
 	}
 }
-

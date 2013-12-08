@@ -3,29 +3,35 @@ function getKindOfPoi(string) {
 		string = string.split('=')[1];
 	}
 	switch (string) {
+	case "waste_basket":
+		return "Abfalleimer";
 	case "tree":
 		return "Baum";
-	case "bench":
-		return "Sitzbank";
+	case "roadwork":
+		return "Baustelle";
 	case "fountain":
 		return "Brunnen";
 	case "waste_disposal":
 		return "Container";
-	case "traffic_signals":
-		return "Lichtsignal";
-	case "waste_basket":
-		return "Abfalleimer";
 	case "crossing":
 		return "Fussgängerstreifen";
 	case "hydrant":
 		return "Hydrant";
-	case "constructionWork":
-		return "Baustelle";
+	case "intersection":
+		return "Kreuzung";
+	case "traffic_signals":
+		return "Lichtsignal";
+	case "bench":
+		return "Sitzbank";
+	case "warning":
+		return "Unvermerkte Kreuzung";
 	
 	case "bar":
 		return "Bar";
 	case "restaurant":
 		return "Restaurant";
+	case "fast_food":
+		return "Imbisslokal";
 	case "pub":
 		return "Pub";
 	case "cafe":
@@ -41,7 +47,9 @@ function getKindOfPoi(string) {
 		return "Dorfladen";
 	case "departement_store":
 		return "Warenhaus";
-	case "backery":
+	case "mall":
+		return "Einkaufszentrum";
+	case "bakery":
 		return "Bäckerei";
 		
 	case "library":
@@ -94,14 +102,10 @@ function getKindOfPoi(string) {
 	case "dentist":
 		return "Zahnarzt";
 		
-	case "intersection":
-		return "Kreuzung";
-		
 	default:
 		return "Unbekannt";
 	}
 }
-
 
 function getDirectionForDegrees(deg) {
 	
@@ -119,12 +123,13 @@ function getDirectionForDegrees(deg) {
 		return "links abbiegen";
 	} else if ((deg >= 292.5) && (deg < 337.5)) {
 		return "leicht links weiterlaufen";
-	} else if ((deg >= 337.5) || ((deg < 22.5) && (deg > 0)))  {
+	} else if ((deg >= 337.5) || ((deg < 22.5) && (deg >= 0)))  {
 		return "geradeaus weiterlaufen";
 	} else {
 		return "";
 	}
 }
+
 function getSurface(surface) {
 	var type = "-";
 	switch (surface) {
@@ -194,6 +199,7 @@ function getTypeOfWay(wayTags) {
 		case "footway":
 		case "path":
 		case "pedestrian":
+		case "track":
 			type = "Fussweg";
 			break;
 		default:

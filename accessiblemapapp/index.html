@@ -3,9 +3,7 @@
 	<html>
 		<head>
 			<meta charset="UTF-8">
-			<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi">
-			<!--		<meta name="apple-mobile-web-app-capable" content="yes">
-			<!--	<meta name="apple-mobile-web-app-status-bar-style" content="black"> -->
+			<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 			<link rel="stylesheet" type="text/css"  href="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.css">
 			<link rel="stylesheet" type="text/css" href="css/style.css">
@@ -27,6 +25,8 @@
 			<script type="text/javascript" src="lib/javascript.util.js"></script>
 			<script type="text/javascript" src="lib/jsts.js" ></script>
 			<script type="text/javascript" src="js/wayInfo.js" ></script>
+			<script type="text/javascript" src="js/objects.js" ></script>
+			<script type="text/javascript" src="js/overpassAPI.js" ></script>
 			<script type="text/javascript">
 				
 				initPage();
@@ -84,6 +84,9 @@
 										<input type="checkbox"  id="amenity=fountain" name="op" class="custom"/>
 										<label for="amenity=fountain" >Brunnen</label>
 
+										<input type="checkbox" id="roadworks" class="custom" name="op"/>
+										<label for="roadworks">Baustellen</label>
+
 										<input type="checkbox"  id="amenity=waste_disposal"  name="op" class="custom"/>
 										<label for="amenity=waste_disposal" >Container</label>
 
@@ -93,18 +96,15 @@
 										<input type="checkbox"  id="amenity=hydrant" name="op"  class="custom"/>
 										<label for="amenity=hydrant" >Hydrante</label>
 										
-										<input type="checkbox" id="highway =trafficsignals" class="custom" name="op" checked="checked"/>
-										<label for="highway =trafficsignals">Lichtisgnale</label>
-										
 										<input type="checkbox" id="intersections" class="custom" name="op" checked="checked"/>
 										<label for="intersections" >Kreuzungen</label>
 
+										<input type="checkbox" id="highway =trafficsignals" class="custom" name="op" checked="checked"/>
+										<label for="highway =trafficsignals">Lichtisgnale</label>
+										
 										<input type="checkbox" id="amenity =bench" class="custom" name="op" checked="checked"/>
 										<label for="amenity =bench" >Sitzbänke</label>
 
-										<input type="checkbox" id="roadwork" class="custom" name="op" checked="checked"/>
-										<label for="roadwork" >Baustellen</label>
-										
 										<input type="checkbox" id="overlapwarnings" class="custom" name="op" checked="checked"/>
 										<label for="overlapwarnings" >Unvermerkte Kreuzungen</label>
 									</fieldset>
@@ -120,6 +120,9 @@
 
 										<input type="checkbox" id="restaurant" checked="checked"/>
 										<label for="restaurant" >Restaurants</label>
+										
+										<input type="checkbox" id="fast_food" checked="checked"/>
+										<label for="fast_food" >Imbisslokal</label>
 
 										<input type="checkbox" id="bar"/>
 										<label for="bar" >Bars</label>
@@ -143,20 +146,23 @@
 								<div data-role="fieldcontain">
 									<fieldset data-role="controlgroup" data-mini="true">
 
-										<input type="checkbox" id="kiosk"/>
-										<label for="kiosk" >Kiosk</label>
+										<input type="checkbox" id="shop=kiosk"/>
+										<label for="shop=kiosk" >Kiosk</label>
 
-										<input type="checkbox" id="supermarket"/>
-										<label for="supermarket" >Supermarkt</label>
+										<input type="checkbox" id="shop=supermarket"/>
+										<label for="shop=supermarket" >Supermarkt</label>
 
-										<input type="checkbox" id="general"/>
-										<label for="general" >Dorfladen</label>
+										<input type="checkbox" id="shop=general"/>
+										<label for="shop=general" >Dorfladen</label>
 
-										<input type="checkbox" id="department_store"/>
-										<label for="department_store" >Warenhaus</label>
+										<input type="checkbox" id="shop=department_store"/>
+										<label for="shop=department_store" >Warenhaus</label>
+										
+										<input type="checkbox" id="shop=mall"/>
+										<label for="shop=mall" >Einkaufszentrum</label>
 
-										<input type="checkbox" id="bakery"/>
-										<label for="bakery" >Bäckerei</label>
+										<input type="checkbox" id="shop=bakery"/>
+										<label for="shop=bakery" >Bäckerei</label>
 
 									</fieldset>
 								</div>
@@ -281,7 +287,7 @@
 								<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
 							</li>
 							<li>
-								<a href="pages/info.html" data-transition="none" data-role="button" data-icon="info" >Info</a>
+								<a href="#info" data-transition="none" data-role="button" data-icon="info" >Info</a>
 							</li>
 
 						</ul>
@@ -293,7 +299,7 @@
 			<!-- page dialog-->
 			<div data-role="page" id="dialog">
 				<!-- header -->
-				<div data-role="header" data-position="fixed" class="ui-bar-a"data-theme="a"  data-tap-toggle="false">
+				<div data-role="header" data-position="fixed" class="ui-bar-a" data-theme="a"  data-tap-toggle="false">
 					<h1>Manuelle Standorteingabe</h1>
 				</div>
 				<!--/header -->
@@ -302,7 +308,7 @@
 				<div id="contentDialog" data-role="content" >
 					<div data-role="fieldcontain">
 						<label for="street" id="lblStreet">Strasse:</label>
-						<input type="text" name="name" id="street" value="Seequai"  />
+						<input type="text" name="name" id="street" value="Bühlerallee"  />
 					</div>
 					<div class="ui-grid-a">
 						<div  class="ui-block-a" >
@@ -338,7 +344,7 @@
 			<!-- page streetView-->
 			<div data-role="page" id="streetViewLeft" data-theme="c">
 				<!-- header -->
-				<div data-role="header" data-position="fixed" class="ui-bar-a"data-theme="a"  data-tap-toggle="false">
+				<div data-role="header" data-position="fixed" class="ui-bar-a" data-theme="a"  data-tap-toggle="false">
 					<a href="#location" data-icon="arrow-l"  data-rel="back" class="ui-btn-left">Zurück</a>
 					<h1>Accessible Map</h1>
 
@@ -357,27 +363,7 @@
 				<!--/header -->
 
 				<!-- content -->
-				<a href="#" data-icon="refresh" onClick="refreshStreetView();" data-role="button" >Ansicht aktualisieren</a>
 				<div id="streetViewContentLeft" data-role="content" >
-					<div data-role="collapsible-set" data-theme="c" data-content-theme="d">
-						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
-							<h4>Orientierungspunkte</h4>
-								<h3>Vor Ihnen</h3>
-							<div id="inFrontLeft">
-								<ul class="poi-list" id="frontleftlist"></ul>
-							</div>
-
-								<h3>Hinter Ihnen</h3>
-							<div id="inBackLeft">
-								<ul class="poi-list" id="backleftlist"></ul>
-							</div>
-						</div>
-						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
-							<h4>POIs im Umkreis</h4>
-
-							<div id="aroundLeft"></div>
-						</div>
-					</div>
 
 				</div><!--/content -->
 
@@ -424,28 +410,8 @@
 				<!--/header -->
 
 				<!-- content -->
-				<a href="#" data-icon="refresh" onClick="refreshStreetView();" data-role="button" >Ansicht aktualisieren</a>
 				
 				<div id="streetViewContentRight" data-role="content" >
-					<div data-role="collapsible-set" data-theme="c" data-content-theme="d">
-						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
-							<h4>Orientierungspunkte </h4>
-								<h3>Vor Ihnen</h3>
-							<div id="inFrontRight">
-								<ul class="poi-list" id="frontrightlist"></ul>
-							</div>
-
-								<h3>Hinter Ihnen</h3>
-							<div id="inBackRight">
-								<ul class="poi-list" id="backrightlist"></ul>
-							</div>
-						</div>
-						<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d">
-							<h4>POIs im Umkreis</h4>
-
-							<div id="aroundRight"></div>
-						</div>
-					</div>
 				</div><!--/content -->
 
 				<!-- footer -->
@@ -472,7 +438,7 @@
 			<!-- page routing-->
 			<div data-role="page" id="routing" data-theme="c">
 				<!-- header -->
-				<div data-role="header" data-position="fixed" class="ui-bar-a"data-theme="a"  data-tap-toggle="false">
+				<div data-role="header" data-position="fixed" class="ui-bar-a" data-theme="a"  data-tap-toggle="false">
 					<a href="#location" data-icon="arrow-l"  data-rel="back" class="ui-btn-left">Zurück</a>
 					<h1>Accessible Map</h1>
 					<h2>Routing</h2>
@@ -503,7 +469,7 @@
 								<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
 							</li>
 							<li>
-								<a href="pages/info.html" data-transition="none" data-role="button" data-icon="info" >Info</a>
+								<a href="#info" data-transition="none" data-role="button" data-icon="info" >Info</a>
 							</li>
 						</ul>
 					</div><!-- /navbar -->
@@ -514,7 +480,7 @@
 			<!-- page routing-->
 			<div data-role="page" id="routingRight" data-theme="c">
 				<!-- header -->
-				<div data-role="header" data-position="fixed" class="ui-bar-a"data-theme="a"  data-tap-toggle="false">
+				<div data-role="header" data-position="fixed" class="ui-bar-a" data-theme="a"  data-tap-toggle="false">
 					
 					<h1>Accessible Map</h1>
 					<a href="#location" data-icon="arrow-l"  data-rel="back" class="ui-btn-left">Zurück</a>
@@ -546,7 +512,7 @@
 								<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
 							</li>
 							<li>
-								<a href="pages/info.html" data-transition="none" data-role="button" data-icon="info" >Info</a>
+								<a href="#info" data-transition="none" data-role="button" data-icon="info" >Info</a>
 							</li>
 						</ul>
 					</div><!-- /navbar -->
@@ -557,7 +523,7 @@
 			<!-- page options-->
 			<div data-role="page" id="options" data-theme="c" >
 				<!-- header -->
-				<div data-role="header" data-position="fixed" class="ui-bar-a"data-theme="a"  data-tap-toggle="false">
+				<div data-role="header" data-position="fixed" class="ui-bar-a" data-theme="a"  data-tap-toggle="false">
 					<a href="#location" data-rel="back" data-icon="arrow-l" class="ui-btn-left">Zurück</a>
 					<h1>Accessible Map</h1>
 					<h2>Optionen</h2>
@@ -603,7 +569,7 @@
 								<a href="#options" data-transition="none" data-role="button" data-icon="gear" class="ui-btn-active ui-state-persist" >Optionen</a>
 							</li>
 							<li>
-								<a href="pages/info.html" data-transition="none" data-role="button" data-icon="info"  >Info</a>
+								<a href="#info" data-transition="none" data-role="button" data-icon="info"  >Info</a>
 							</li>
 						</ul>
 					</div><!-- /navbar -->
@@ -614,7 +580,7 @@
 			<!-- page manual selection from multiple results-->
 			<div data-role="page" id="manualSelection">
 				<!-- header -->
-				<div data-role="header" data-position="fixed" class="ui-bar-a"data-theme="a"  data-tap-toggle="false">
+				<div data-role="header" data-position="fixed" class="ui-bar-a" data-theme="a"  data-tap-toggle="false">
 					<h1>Ergebnisauswahl</h1>
 				</div>
 				<!--/header -->
@@ -635,6 +601,78 @@
 						</div>
 					</div>
 				</div><!-- /page -->
+				
 			</div>
+					<!-- page info-->
+		<div data-role="page" id="info">
+			<!-- header -->
+			<div data-role="header" data-position="fixed" class="ui-bar-a" data-theme="a"  data-tap-toggle="false">
+				<a href="#" data-rel="back" data-icon="arrow-l" class="ui-btn-left">Zurück</a>
+				<h1>Accessible Map</h1>
+				<h2>About Accessible Map</h2>
+			</div>
+			<!--/header -->
+
+			<!-- content -->
+			<div id="contentInfo" data-role="content" >
+				<p>
+					<b>Version:</b> 0.1
+				</p>
+				<p>
+					<b>Website:</b><a href="www.accessiblemap.ch">www.accessiblemap.ch</a>
+				</p>
+				<p>
+					<b>Melde einen Fehler:</b><a href="https://github.com/bitterzoet/accessiblemap/issues" >Github</a>
+				</p>
+				<p>
+					<b>Entwickler</b>
+				</p>
+				<p>
+					Gwendoline Rothauser
+					<br>
+					Julia Schmucki
+				</p>
+				<p>
+					<b>Beteiligte:</b>
+				</p>
+				<p>
+					HSR Hochschule für Technik Rapperswil
+					<br>
+					Prof. Stefan Keller, Geometa Lab
+				</p>
+				<p>
+					<img src="../css/images/HSR_Logo_CMYK.jpg" alt="LogoHSR">
+				</p>
+				<h4>Credits</h4>
+				<p>
+					<b>Partner:</b> Stiftung Zugang für alle, Stadt Zürich
+					<br>
+					<b>Geodaten:</b> OpenstreetMap, Open Government Data Zürich
+					<br>
+					<b>Routing-Dienst:</b> OSRM (routing-osrm.ch)
+				</p>
+			</div><!--/content -->
+
+			<!-- footer -->
+			<div data-role="footer" class="ui-footer" data-position="fixed" data-tap-toggle="false" >
+				<div data-role="navbar" data-iconpos="bottom"  >
+					<ul>
+						<li>
+							<a href="#location" data-transition="none" data-role="button" data-icon="marker">Standort</a>
+						</li>
+						<li>
+							<a href="#routing" data-transition="none" data-role="button" data-icon="arrow-u" >Routing</a>
+						</li>
+						<li>
+							<a href="#options" data-transition="none" data-role="button" data-icon="gear" >Optionen</a>
+						</li>
+						<li>
+							<a href="#" data-transition="none" data-role="button" data-icon="info"  class="ui-btn-active ui-state-persist" >Info</a>
+						</li>
+					</ul>
+				</div><!-- /navbar -->
+			</div><!-- /footer -->
+
+		</div><!-- /page -->
 		</body>
 	</html>

@@ -5,7 +5,7 @@ function distSegmentEntry(startlat,startlon,endLat,endLon,matchedLat,matchedLon,
 	this.endLon = endLon;
 	this.matchedLat = matchedLat;
 	this.matchedLon = matchedLon;
-	this.dist = dist;
+	this.distance = dist;
 	this.wayId = wayId;
 	this.way = way;
 }
@@ -71,4 +71,29 @@ function coordPair(lat, lon,id) {
 	this.lat = lat;
 	this.lon = lon;
 	this.id = id;
+}
+
+function finalElement(distance,direction,lat,lon,tags,opsLeft, opsRight,way){
+	this.distance = distance;
+	this.direction = direction;
+	this.lat = lat;
+	this.lon = lon;
+	this.tags = tags;
+	this.opsLeft = opsLeft;
+	this.opsRight = opsRight;
+	this.way = way;
+}
+
+function intersection(lat, lon, wayTagsA, wayTagsB, keyword, wayIdA, wayIdB) {
+	var ways = [];
+	var wayIds = [];
+	this.lat = lat;
+	this.lon = lon;
+	ways.push(getTypeOfWay(wayTagsA));
+	ways.push(getTypeOfWay(wayTagsB));
+	this.tags = ways;
+	this.keyword = keyword;
+	wayIds.push(wayIdA);
+	wayIds.push(wayIdB);
+	this.wayIds = wayIds;
 }

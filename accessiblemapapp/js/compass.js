@@ -1,7 +1,8 @@
 //TODO: nicht jedesmal einen listener hinzufügen
 function checkCompass(){
 	var deferred = $.Deferred();
-	if(window.DeviceOrientationEvent) { 
+	if(window.DeviceOrientationEvent) {
+		console.log("compass available");
 		window.setInterval(function(){
 		window.addEventListener('deviceorientation', function(event) {
 			//iOs
@@ -9,19 +10,21 @@ function checkCompass(){
                  deferred.resolve(event.webkitCompassHeading);
                }
                //non iOS is the other way round
-               else {
-                 if(!window.chrome) {
-                   deferred.resolve(webkitAlpha-270);
-                 }else{
-                	 webkitAlpha = event.alpha;
-                     deferred.resolve(webkitAlpha);
-                 }
-               }
+				else {
+					
+					if (!window.chrome) {
+						deferred.resolve(event.alpha - 270);
+					}else{
+						deferred.resolve(event.alpha);
+					}
+				}
 			
 			}, false);
 		}
 		,
-		360);	//all 360 seconds
+		360);	//intervall in ms
+	}else{
+		deferred.resolve(0);
 	}
 	return deferred;
 }

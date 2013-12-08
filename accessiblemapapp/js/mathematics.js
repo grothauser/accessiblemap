@@ -1,25 +1,24 @@
 var streetWidth = 0.01;
-function sqr(x) { 
-	return x * x 
-}
+
 function dist2(v, w) { 
-	return sqr(v.x - w.x) + sqr(v.y - w.y) 
+    return Math.pow((v.x - w.x),2) + Math.pow((v.y - w.y),2); 
 }
 function distToSegmentSquared(p, v, w) {
-  var l2 = dist2(v, w);
-  if (l2 == 0) return dist2(p, v);
-  var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-  if (t < 0) return dist2(p, v);
-  if (t > 1) return dist2(p, w);
-  return dist2(p, { x: v.x + t * (w.x - v.x),
-                    y: v.y + t * (w.y - v.y) });
+	var l2 = dist2(v, w);
+	if (l2 == 0) return dist2(p, v);
+	var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+	if (t < 0) return dist2(p, v);
+	if (t > 1) return dist2(p, w);
+	return dist2(p, { x: v.x + t * (w.x - v.x),
+                	  y: v.y + t * (w.y - v.y) });
 }
 
 //input: point p, point v and point w  where v and w are start and end of segment 
 //output: distance between segment and point p
 function distToSegment(p, v, w) { 
-	return Math.sqrt(distToSegmentSquared(p, v, w)); 
+    return Math.sqrt(distToSegmentSquared(p, v, w)); 
 }
+
 function deg2rad(a) {
 	return a * 0.017453292519943295;
 }
@@ -35,8 +34,8 @@ function frac(a) {
 }
 function calcBearing(lat1, lon1, lat2, lon2) {
 	// source : http://www.movable-type.co.uk/scripts/latlong.html
-	lat1 = deg2rad(lat1);
-	lat2 = deg2rad(lat2);
+	var lat1 = deg2rad(lat1);
+	var lat2 = deg2rad(lat2);
 	var dLat = deg2rad(lat2 - lat1);
 	var dLon = deg2rad(lon2 - lon1);
 	var y = Math.sin(dLon) * Math.cos(lat2);
@@ -45,15 +44,17 @@ function calcBearing(lat1, lon1, lat2, lon2) {
 	var brng = rad2deg(Math.atan2(y, x));
 	return brng;
 }
+
 function getAzimuth(degreesToNext,degreesToOverNext){
-var azimuth = degreesToOverNext - degreesToNext;
-if(azimuth < 0){
-	return 360 + azimuth;
+	var azimuth = degreesToOverNext - degreesToNext;
+	if(azimuth < 0){
+		return 360 + azimuth;
+	}
+	else{
+		return azimuth;
+	}
 }
-else{
-	return azimuth;
-}
-}
+	
 //output: bearing in degrees to a point. input: compassheading and two points
 function calcCompassBearing(lat1, lon1, lat2, lon2, compassHeading) {
 	var destinationBearing = normaliseBearing(calcBearing(lat2,lon2,lat1,lon1));
@@ -64,7 +65,6 @@ function calcCompassBearing(lat1, lon1, lat2, lon2, compassHeading) {
 	}else{
 		return destinationBearing;
 	}
-	
 }
 
 //calculates the buffer between two nodes
@@ -139,7 +139,7 @@ function isPip(lat, lon, multipolyCoords){
 /*calculates the minimum and maximum coordinate of a route
  *used to find orientation points along the route */
 function getMinMaxForRoute(route){
-	var bbox = new Array();
+	var bbox = [];
 	var minLon = route[0].lon;
 	var minLat = route[0].lat;
 	var maxLon = route[0].lon;
@@ -179,7 +179,6 @@ function getPointsInBuffer(buffer, selPoi, lat,lon, distance) {
 	var testx, testy;
 	var poisInStreetBuffer = [];
 	for ( var k = 0; k < selPoi.length; k++) {
-		//console.log(selPoi[k]);
 		testx = selPoi[k].lat;
 		testy = selPoi[k].lon;
 		var i, j, isInBuffer = false;
@@ -188,10 +187,9 @@ function getPointsInBuffer(buffer, selPoi, lat,lon, distance) {
 					&& (testx < (vertx[j] - vertx[i]) * (testy - verty[i])
 							/ (verty[j] - verty[i]) + vertx[i])) {
 				isInBuffer = !isInBuffer;
-				//console.log("changed");
 			}
 		}
-		if (isInBuffer == true) {
+		if (isInBuffer === true) {
 			var distToPoi = calcDistance(lat,lon,selPoi[k].lat,selPoi[k].lon);
 			if(distToPoi <= (distance) ){
 				poisInStreetBuffer.push(new orientationEntry(selPoi[k].lat, selPoi[k].lon,selPoi[k].keyword,selPoi[k].tags,distToPoi));
@@ -200,19 +198,20 @@ function getPointsInBuffer(buffer, selPoi, lat,lon, distance) {
 	}
 	return poisInStreetBuffer;
 }
+
 //caluclates the bounding box for a coordinate with a certain radius
 //input: radius in meter
 function getBbox(lat, lon, radius) {
 	var radiusX = radius/1000;
 	var radiusY = radius/1000;
-	
+
 	var degreesOfRadiusX = (radiusX / 111.111);
 	var degreesOfRadiusY = (radiusY / 111.111);
 	
 	var degreesOfLatY = degreesOfRadiusY * Math.cos(((lat * Math.PI)/180));
 	
 	//longitudes 
-	var bbox = new Array();
+	var bbox = [];
 	bbox.push(parseFloat(lon - degreesOfRadiusX));
 	bbox.push(parseFloat(lat - degreesOfLatY));
 	bbox.push(parseFloat(lon + degreesOfRadiusX));
@@ -221,21 +220,19 @@ function getBbox(lat, lon, radius) {
 }
 
 function isLeft(alat, alon, blat, blon, clat, clon){
-    var val = ((blon - alon)*(clat - alat)-(blat - alat)*(clon - alon));
-    return val > 0;
+	var val = ((blon - alon)*(clat - alat)-(blat - alat)*(clon - alon));
+	return val > 0;
 }
 //calculates the distance in km between two coordinates
 function calcDistance(lat1, lon1, lat2, lon2) {
-	 var R = 6371; 
-	 var dLat = deg2rad(lat2-lat1);
-	 var dLon = deg2rad(lon2-lon1);
-	 var lat1 = deg2rad(lat1);
-	 var lat2 = deg2rad(lat2);
-
-	 var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-	         Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
-	 var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-	 var d = R * c;
-	 return d;
+	var R = 6371; 
+	var dLat = deg2rad(lat2-lat1);
+	var dLon = deg2rad(lon2-lon1);
+	var lat1 = deg2rad(lat1);
+	var lat2 = deg2rad(lat2);
+	var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+	Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
+	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+	var d = R * c;
+	return d;
 }
-

@@ -35,28 +35,35 @@ function searchOverpassForLocationCoords(lat, lon, keyWord) {
 	});
 	return deferred;
 }
+
 function getWayInfoOverpass(wayId){
 	var deferred = $.Deferred();
 	$.ajax({
 		type : 'GET',
 		url : "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];way("
-				+ wayId + ");out;",
+				+ wayId + ");out body; node(w); out skel;",
 		dataType : 'json',
 		jsonp : 'json_callback',
-		error : function(parameters) {
+		error : function(overpassResult) {
 			console.error("error");
 		},
-		success : function(parameters) {
-			deferred.resolve(parameters);
+		success : function(overpassResult) {
+			var paths = [];
+			var nodes = [];
+			for(var i=0; i<overpassResult.elements.length; i++){
+				if(overpassResult.elements[i].type == "way")
+					paths.push(overpassResult.elements[i]);
+				else
+					nodes.push(overpassResult.elements[i]);
+			}
+			deferred.resolve(paths, nodes);
 		},
 	});
 	return deferred;
-
 }
 //returns the nearest node for a given coordinate
-function searchOverpassForNearestNode(coord,keyWord) {
+function searchOverpassForNearestNode(bbox,keyWord) {
 	var deferred = $.Deferred();
-	var bbox = getBbox(coord.lat, coord.lon, "200");
 	var ways = [];
 	var nodes = [];
 	$.ajax({
