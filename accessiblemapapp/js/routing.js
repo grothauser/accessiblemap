@@ -35,7 +35,7 @@ function getRoute(lat,lon,destlat, destlon) {
 	locatedLat = routeStart.x;
 	locatedLon = routeStart.y;
 
-	getRouteOSRM(47.229801, 8.826978,47.2303967, 8.8213076);
+	getRouteOSRM(lat,lon,destlat,destlon);
 }
 function writeHTMLButtons(){
 	$('#routingviewright').html('<a href="#" data-icon="refresh" onClick="refreshRoute();"  data-role="button" >Route aktualisieren</a>'+
