@@ -4,28 +4,42 @@ var OPDistance = 0.3;
 var today;	
 var lat, lon;
 
-function enricheWays(route){
+function enricheWays(route, warnings){
 	orientationContent = [];
 	var deferred = $.Deferred();
 	var enrichedRoute = [];
 	var selectedPois = getSelectedRoutingElements();
-	getOrientationPoints(route, selectedPois, intersections).done(function(){
+	getOrientationPoints(route, selectedPois, intersections).done(function(){		
 		$.each(route, function(index, coordinate){
+			var poisOnLeftSide = [];
+			var poisOnRightSide = [];
 			if(index <= (route.length-2)){
+				//add warnings
+				var bothSides = fillPoisInBothSidesRoute(selectedPois, warnings, "overlapwarnings", coordinate);
+				poisOnLeftSide = bothSides.concat(poisOnLeftSide);
+				poisOnRightSide = bothSides.concat(poisOnRightSide);
+				
+				//add roadworks
+				bothSides = fillPoisInBothSidesRoute(selectedPois, roadworks, "roadworks", coordinate);
+				poisOnLeftSide = bothSides.concat(poisOnLeftSide);
+				poisOnRightSide = bothSides.concat(poisOnRightSide);
+				
 				var nextCoordinate = route[index + 1];
 				var degreesToNext = calcBearing(coordinate.lat, coordinate.lon,	nextCoordinate.lat, nextCoordinate.lon);
 				var sideBuffers = calculateSideBuffers(coordinate.lat, coordinate.lon, nextCoordinate.lat, nextCoordinate.lon, degreesToNext);
 				
 				var poisInLeftStreetSegment = getPointsInBuffer(sideBuffers[0], orientationContent, coordinate.lat,coordinate.lon, coordinate.distance);
-				poisInLeftStreetSegment.sort(distanceSort);
+				poisOnLeftSide = poisInLeftStreetSegment.concat(poisOnLeftSide);
+				poisOnLeftSide.sort(distanceSort);
 				
 				var poisInRightStreetSegment = getPointsInBuffer(sideBuffers[1], orientationContent,  coordinate.lat,coordinate.lon, coordinate.distance);
-				poisInRightStreetSegment.sort(distanceSort);
+				poisOnRightSide = poisInRightStreetSegment.concat(poisOnRightSide);
+				poisOnRightSide.sort(distanceSort);
 				
 				if(typeof coordinate.way != "undefined") {
-					enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, coordinate.lat,coordinate.lon,coordinate.way.tags, poisInLeftStreetSegment, poisInRightStreetSegment,coordinate.way));
+					enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, coordinate.lat,coordinate.lon,coordinate.way.tags, poisOnLeftSide, poisOnRightSide,coordinate.way));
 				}else{
-					enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, coordinate.lat,coordinate.lon, "", poisInLeftStreetSegment, poisInRightStreetSegment,""));
+					enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, coordinate.lat,coordinate.lon, "", poisOnLeftSide, poisOnRightSide,""));
 				}
 			}
 			else if(index === (route.length-1)){
@@ -35,6 +49,21 @@ function enricheWays(route){
 		});
 	});
 	return deferred;
+}
+
+function fillPoisInBothSidesRoute(selPois, poiList, keyword, coord){
+	var poisOnBothSides = [];
+	if($.inArray(keyword, selPois)!==-1){
+		$.each(poiList, function(index, poi){
+			if((coord.way !== "" && typeof coord.way !== "undefined" && typeof coord.way.wayId !== "undefined")&&(coord.way.wayId === poi.wayIds[0] || coord.way.wayId === poi.wayIds[1])){
+				var dist = calcDistance(coord.lat, coord.lon, poi.lat, poi.lon);
+				if((dist*1000)<=coord.distance){
+					poisOnBothSides.push(new orientationEntry(poi.lat, poi.lon, poi.keyword, poi.tags, dist));
+				}
+			}
+		});
+	}
+	return poisOnBothSides;
 }
 
 function enrichStreetWay(locatedWay, intersections, warnings, locLat, locLon){
@@ -230,7 +259,6 @@ function getRoadworks(route){
 				type : 'GET',
 				dataType : 'json',
 				error : function(data) {
-					console.error("error");
 					deferred.resolve();
 				},
 				success : function(data) {
@@ -246,7 +274,7 @@ function getRoadworks(route){
 						//test if roadwork is in process
 						if(startDate<today && endDate>today){
 							var nearestNode = findNearestRoadworkNode(coord, roadwork.geometry.coordinates);
-							var entry = new orientationEntry(nearestNode[1], nearestNode[0], "roadwork", roadwork.properties);
+							var entry = new roadwork(nearestNode[1], nearestNode[0], coord.way.wayId,roadwork.properties);
 							if(roadworks.length===0){
 								roadworks.push(entry);
 							}
@@ -345,11 +373,4 @@ function getPoisForKeyWord(bbox, keyWord){
 		},
 	});
 	return deferred;
-}
-function orientationEntry(lat,lon,keyword, tags, distance){
-	this.lat = lat;
-	this.lon = lon;
-	this.keyword = keyword;
-	this.tags = tags;
-	this.distance = distance;
 }
