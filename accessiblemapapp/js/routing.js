@@ -249,7 +249,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 	var head4;
 	var result = "";
 	if(navipois.length > 0){
-		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +' '+routeStep.way.wayId+'</h4>'; 
+		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +' '+routestep.way.wayId+'</h4>'; 
 		collapsible = collapsible.concat(head4);
 		$.each(navipois, function(i, poi){
 			var distrounded = Math.round(poi.distance*1000);
@@ -258,7 +258,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 		});
 	}
 	if(typeof routestep.tags != "undefined" ){
-		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction  +' '+routeStep.way.wayId+'</h4>'; 
+		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction  +' '+routestep.way.wayId+'</h4>'; 
 		if(typeof routestep.tags.surface != "undefined"){
 			var surface = getSurface(routestep.tags.surface);
 			if(surface !=="-"){
@@ -280,7 +280,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 		collapsible = collapsible.concat("</p></div>");
 		deferred.resolve(collapsible);
 	}else{
-		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction+" "+routeStep.way.wayId+"</h4>"));
+		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction+" "+routestep.way.wayId+"</h4>"));
 	}
 	return deferred;
 }
