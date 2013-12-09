@@ -50,7 +50,6 @@ function fillRouteWithOverpassData(routeCoords){
 				fillDataFromOSM();
 				checkRouteOSRM();
 				writeRoute(coords);
-				console.log(wayPerCord);
 			}
 		});
 }
@@ -138,12 +137,9 @@ function checkRouteOSRM(){
 			if(nearestNodesArr.length == 1){
 				
 				var waysForNode = getWaysForNode(nearestNode.id);
-				console.log(nearestNode.id);
-				console.log(waysForNode);
 				//if only one way for nearest node take it
 				if(index <= (coords.length - 2)){
 					if(waysForNode.length==1){
-						console.log("1. way for " + nearestNode.id + " selected: " + waysForNode[0].wayId);
 						wayPerCord.push(new way(waysForNode[0].wayId, nearestNode.id,waysForNode[0].tags,coord.lat, coord.lon));
 					}else{
 						var nextcoord = coords[index+1];
@@ -157,7 +153,6 @@ function checkRouteOSRM(){
 							
 							//if only one way for the next node take it
 							if(waysForNextNode.length==1){
-								console.log("2 way for " + nearestNode.id + " selected: " + waysForNextNode[0].wayId);
 								wayPerCord.push(new way(waysForNextNode[0].wayId, nearestNode.id,waysForNextNode[0].tags,coord.lat, coord.lon));
 							}else{
 								//see which way they have in common
@@ -165,7 +160,6 @@ function checkRouteOSRM(){
 									$.each(waysForNextNode, function(inode, wayOfNextNode){
 										//takes the first common way both of the nodes have (possible issue if more ways contain the same two nodes)
 										if(wayOfNextNode.wayId == wayOfNode.wayId){
-											console.log("3 way for " + nearestNode.id + " selected: " + wayOfNode.wayId);
 											wayPerCord.push(new way(wayOfNode.wayId,nearestNode.id,wayOfNode.tags, coord.lat, coord.lon));
 											return false;
 										}
@@ -185,7 +179,6 @@ function checkRouteOSRM(){
 									$.each(waysForNode, function(inode, wayOfNode){
 										//takes the first common way both of the nodes have (possible issue if more ways contain the same two nodes)
 										if(wayOfNode.wayId == wayOfOverNextNode.wayId){
-											console.log("4 way for " + nearestNode.id + " selected: " + wayOfNode.wayId);
 											wayPerCord.push(new way(wayOfNode.wayId,nearestNode.id,wayOfNode.tags, coord.lat, coord.lon));
 											return false;
 										}
@@ -203,12 +196,10 @@ function checkRouteOSRM(){
 					var lastNode = nearestNodesLastNodeArr[0];
 					
 					var waysForLastCord = getWaysForNode(lastNode.id);
-					console.log("secondlast node = "+lastNode.id);
 					$.each(waysForLastCord, function(i, wayOfLastNode){
 						$.each(waysForNode, function(inode, wayOfNode){
 							//takes the first common way both of the nodes have (possible issue if more ways contain the same two nodes)
 							if(wayOfNode.wayId == wayOfLastNode.wayId){
-								console.log("5 way for " + nearestNode.id + " selected: " + wayOfNode.wayId);
 								wayPerCord.push(new way(wayOfNode.wayId,nearestNode.id,wayOfNode.tags, coord.lat, coord.lon));
 								return false;
 							}

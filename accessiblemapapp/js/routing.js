@@ -123,7 +123,6 @@ function writeRoute(cords, wayVectors) {
 			});
 			var cleanedRoute = cleanRoute(tempRoute);
 			var warnings = new Array();//getIsecWarnings(wayVectors);
-			console.log(cleanedRoute);
 			enricheWays(cleanedRoute, warnings).done(function(enrichedRoute){
 				writeApp(enrichedRoute, "left");
 				writeApp(enrichedRoute, "right");
@@ -203,7 +202,6 @@ function isTheSame(routeStep,nextStep){
 }
 
 function writeApp(list, side) {
-	console.log(list);
 	var html = '<div data-role="collapsible-set" data-theme="c" data-content-theme="d">';	
 	$.each(list,function(index, routeStep) {
 		var indexIncr = (index + 1);
@@ -211,10 +209,10 @@ function writeApp(list, side) {
 		if (index === 0) {
 			if(routeStep.distance !== 0){
 				var directionsplit = routeStep.direction.split(',');
-				html = html.concat('<p class="firstRouteStep">'+ indexIncr	+ ". Sie müssen " +directionsplit[0]+ ". Laufen Sie " + routeStep.distance +" Meter, dann "+directionsplit[1]+' '+routeStep.way.wayId+'  0</p>');
+				html = html.concat('<p class="firstRouteStep">'+ indexIncr	+ ". Sie müssen " +directionsplit[0]+ ". Laufen Sie " + routeStep.distance +" Meter, dann "+directionsplit[1]+'</p>');
 			}else{
 				var direction = routeStep.direction.charAt(0).toUpperCase()+ routeStep.direction.slice(1);
-				html = html.concat('<p class="firstRouteStep">'+ indexIncr	+ ". "+direction+' '+routeStep.way.wayId+'  1</p>');
+				html = html.concat('<p class="firstRouteStep">'+ indexIncr	+ ". "+direction+'</p>');
 			}
 				
 		} 
@@ -251,7 +249,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 	var head4;
 	var result = "";
 	if(navipois.length > 0){
-		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +' '+routestep.way.wayId+'  2</h4>'; 
+		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +' </h4>'; 
 		collapsible = collapsible.concat(head4);
 		$.each(navipois, function(i, poi){
 			var distrounded = Math.round(poi.distance*1000);
@@ -260,7 +258,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 		});
 	}
 	if(typeof routestep.tags != "undefined" ){
-		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction  +' '+routestep.way.wayId+'  3</h4>'; 
+		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction  +'</h4>'; 
 		if(typeof routestep.tags.surface != "undefined"){
 			var surface = getSurface(routestep.tags.surface);
 			if(surface !=="-"){
@@ -282,7 +280,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 		collapsible = collapsible.concat("</p></div>");
 		deferred.resolve(collapsible);
 	}else{
-		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction+" "+routestep.way.wayId+" 4 </h4>"));
+		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction+" </h4>"));
 	}
 	return deferred;
 }
