@@ -1,99 +1,106 @@
 function distSegmentEntry(startlat,startlon,endLat,endLon,matchedLat,matchedLon,dist,wayId,way){
-	this.startlat = startlat;
-	this.startlon = startlon;
-	this.endLat = endLat;
-	this.endLon = endLon;
-	this.matchedLat = matchedLat;
-	this.matchedLon = matchedLon;
-	this.distance = dist;
-	this.wayId = wayId;
-	this.way = way;
+    this.startlat = startlat;
+    this.startlon = startlon;
+    this.endLat = endLat;
+    this.endLon = endLon;
+    this.matchedLat = matchedLat;
+    this.matchedLon = matchedLon;
+    this.distance = dist;
+    this.wayId = wayId;
+    this.way = way;
 }
 function wayVector(wayId, nodes, tags){
-	this.wayId = wayId;
-	this.nodes = nodes;
-	this.tags = tags;
+    this.wayId = wayId;
+    this.nodes = nodes;
+    this.tags = tags;
 }
 //used for calculation with coordinates
 function point(x,y){
-	this.x = x;
-	this.y = y;
+    this.x = x;
+    this.y = y;
 }
 function tempEntry(direction, distance,  lat, lon, bearingtoNext, way) {
-	this.direction = direction;
-	this.distance = distance;
-	this.lat = lat;
-	this.lon = lon;
-	this.bearingtoNext = bearingtoNext;
-	this.way = way;
+    this.direction = direction;
+    this.distance = distance;
+    this.lat = lat;
+    this.lon = lon;
+    this.bearingtoNext = bearingtoNext;
+    this.way = way;
 }
 function orientationEntry(lat,lon,keyword, tags, distance){
-	this.lat = lat;
-	this.lon = lon;
-	this.keyword = keyword;
-	this.tags = tags;
-	this.distance = distance;
+    this.lat = lat;
+    this.lon = lon;
+    this.keyword = keyword;
+    this.tags = tags;
+    this.distance = distance;
 }
 
 function coordWayMatch(wayId, lat, lon,nodeId,tags) {
-	this.wayId = wayId;
-	this.lat = lat;
-	this.lon = lon;
-	this.nodeId = nodeId;
-	this.tags = tags; 
+    this.wayId = wayId;
+    this.lat = lat;
+    this.lon = lon;
+    this.nodeId = nodeId;
+    this.tags = tags; 
 }
 
 function wayOfRoute(wayId, nodes,tags, lat, lon) {
-	this.wayId = wayId;
-	this.nodes = nodes;
-	this.tags = tags;
-	this.lat = lat;
-	this.lon= lon;
+    this.wayId = wayId;
+    this.nodes = nodes;
+    this.tags = tags;
+    this.lat = lat;
+    this.lon= lon;
 }
 function way( wayId, node, tags, lat, lon){
-	this.wayId = wayId;
-	this.node = node;
-	this.tags = tags;
-	this.lat = lat;
-	this.lon = lon;
+    this.wayId = wayId;
+    this.node = node;
+    this.tags = tags;
+    this.lat = lat;
+    this.lon = lon;
 }
 function streetViewEntry(id,lat,lon,name, clock, distance, tags){
-	this.id = id;
-	this.lat = lat;
-	this.lon = lon;
-	this.name = name;
-	this.clock = clock;
-	this.distance = distance;
-	this.tags = tags;
+    this.id = id;
+    this.lat = lat;
+    this.lon = lon;
+    this.name = name;
+    this.clock = clock;
+    this.distance = distance;
+    this.tags = tags;
 }
 //coordinate of the route
 function coordPair(lat, lon,id) {
-	this.lat = lat;
-	this.lon = lon;
-	this.id = id;
+    this.lat = lat;
+    this.lon = lon;
+    this.id = id;
 }
 
 function finalElement(distance,direction,lat,lon,tags,opsLeft, opsRight,way){
-	this.distance = distance;
-	this.direction = direction;
-	this.lat = lat;
-	this.lon = lon;
-	this.tags = tags;
-	this.opsLeft = opsLeft;
-	this.opsRight = opsRight;
-	this.way = way;
+    this.distance = distance;
+    this.direction = direction;
+    this.lat = lat;
+    this.lon = lon;
+    this.tags = tags;
+    this.opsLeft = opsLeft;
+    this.opsRight = opsRight;
+    this.way = way;
 }
 
 function intersection(lat, lon, wayTagsA, wayTagsB, keyword, wayIdA, wayIdB) {
-	var ways = [];
-	var wayIds = [];
+    var ways = [];
+    var wayIds = [];
+    this.lat = lat;
+    this.lon = lon;
+    ways.push(getTypeOfWay(wayTagsA));
+    ways.push(getTypeOfWay(wayTagsB));
+    this.tags = ways;
+    this.keyword = keyword;
+    wayIds.push(wayIdA);
+    wayIds.push(wayIdB);
+    this.wayIds = wayIds;
+}
+function roadwork(lat, lon, wayId, tags){
 	this.lat = lat;
 	this.lon = lon;
-	ways.push(getTypeOfWay(wayTagsA));
-	ways.push(getTypeOfWay(wayTagsB));
-	this.tags = ways;
-	this.keyword = keyword;
-	wayIds.push(wayIdA);
-	wayIds.push(wayIdB);
-	this.wayIds = wayIds;
+	this.keyword = "roadworks";
+	this.wayId = wayId;
+	this.tags = tags;
 }
