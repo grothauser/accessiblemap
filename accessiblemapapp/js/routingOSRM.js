@@ -29,9 +29,9 @@ function extractCoordinates(data){
 	return coords;
 }
 function fillRouteWithOverpassData(routeCoords){
-	allPaths = [];
-	allNodes = [];
-	allWaysWithNodeCoords = [];
+	allPaths = new Array();
+	allNodes = new Array();
+	allWaysWithNodeCoords = new Array();
 	var ajaxcounter = 1;
 	var bbox = getMinMaxForRoute(routeCoords);
 	// go trough all coords of the route
@@ -48,6 +48,7 @@ function fillRouteWithOverpassData(routeCoords){
 				fillDataFromOSM();
 				checkRouteOSRM();
 				writeRoute(coords);
+				console.log(wayPerCord);
 			}
 		});
 }
@@ -116,9 +117,8 @@ function fillDataFromOSM() {
 	});
 }
 function checkRouteOSRM(){
-	console.log(coords);
 	// nodesOfRoute contains the nearest node for a coordinate
-	wayPerCord = [];
+	wayPerCord = new Array();
 	$.each(coords, function(index, coord){
 		var nearestNodesArr = $.grep(nodesOfRoute, function(node){ return ((node.lat == coord.lat) && (node.lon == coord.lon)); });
 		var nearestNode = nearestNodesArr[0];

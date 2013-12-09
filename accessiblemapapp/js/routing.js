@@ -61,7 +61,7 @@ function writeRoute(cords, wayVectors) {
 		$('#contentRoutingRight').trigger('create');
 	}else{
 		writeHTMLButtons();
-		var tempRoute = [];
+		var tempRoute = new Array();
 		var distance,direction,degreesToNext;
 		var degreesToOverNext, azimuth;
 	
