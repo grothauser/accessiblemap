@@ -116,6 +116,7 @@ function fillDataFromOSM() {
 	});
 }
 function checkRouteOSRM(){
+	console.log(coords);
 	// nodesOfRoute contains the nearest node for a coordinate
 	wayPerCord = [];
 	$.each(coords, function(index, coord){
@@ -201,7 +202,7 @@ function checkRouteOSRM(){
 					var lastNode = nearestNodesLastNodeArr[0];
 					
 					var waysForLastCord = getWaysForNode(lastNode.id);
-				
+					console.log("secondlast node = "+lastNode.id);
 					$.each(waysForLastCord, function(i, wayOfLastNode){
 						$.each(waysForNode, function(inode, wayOfNode){
 							//takes the first common way both of the nodes have (possible issue if more ways contain the same two nodes)
