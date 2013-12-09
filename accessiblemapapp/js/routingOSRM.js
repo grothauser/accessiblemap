@@ -6,7 +6,7 @@ var nodesOfRoute = [];
 var minimumNodeDistance = 0.015;
 function getRouteOSRM(lat1, lon1,lat2, lon2) {
 	$.ajax({
-		url: "js/proxy.php?url="+encodeURIComponent("http://routing.osm.ch/routed-foot/viaroute?loc="+lat1+","+lon1+"&loc="+lat2+","+lon2+"&output=gpx"),
+		url: "\js\\proxy.php?url="+encodeURIComponent("http://routing.osm.ch/routed-foot/viaroute?loc="+lat1+","+lon1+"&loc="+lat2+","+lon2+"&output=gpx"),
 		type: 'GET',
 		dataType : 'xml',
 		error : function(data) {
@@ -22,60 +22,76 @@ function extractCoordinates(data){
 	$(data).find('rtept').each(function(){
 		coords.push(new coordPair($(this)[0].attributes[0].value , $(this)[0].attributes[1].value));
 	});
-	checkCompass().done(function(compval){
-		getSide(compval, coords[0], coords[1], "routing");
-	});
-	fillRouteWithOverpassData(coords);
+	if(coords.length !== 0){
+		checkCompass().done(function(compval){
+			getSide(compval, coords[0], coords[1], "routing");
+		});
+		fillRouteWithOverpassData(coords);
+	}
+	else{
+		writeRoute(coords);
+	}
 	return coords;
 }
 function fillRouteWithOverpassData(routeCoords){
-	allPaths = [];
-	allNodes = [];
-	allWaysWithNodeCoords = [];
-	var ajaxcounter = 1;
-	var bbox = getMinMaxForRoute(routeCoords);
-	// go trough all coords of the route
-		searchOverpassForNearestNode(bbox,'way["highway"]').done(function(allWays,allNodesResult){
-			ajaxcounter--;
-			$.each(allWays, function(index, path){
-				allPaths.push(path);
-			});
-			$.each(allNodesResult, function(index, node){
-				allNodes.push(node);
-			});
-			if(ajaxcounter==0){
-				searchNearestNodes();
-				fillDataFromOSM();
-				checkRouteOSRM();
-				writeRoute(coords);
-			}
-		});
+    allPaths = [];
+    allNodes = [];
+    allWaysWithNodeCoords = [];
+    var bbox = getMinMaxForRoute(routeCoords);
+    // go trough all coords of the route
+    searchOverpassForNearestNode(bbox,'way["highway"]').done(function(allWays,allNodesResult){
+        $.each(allWays, function(index, path){
+            allPaths.push(path);
+        });
+        $.each(allNodesResult, function(index, node){
+            allNodes.push(node);
+        });
+        searchNearestNodes();
+        fillDataFromOSM();
+        checkRouteOSRM();
+        var wayVectors = [];
+        $.each(allPaths, function(i, path){
+    		var nodes = [];
+    		//get all nodes of way
+    		$.each(path.nodes, function(index, node){
+    			//get node info but not for the last
+    			var nodeInfo = getNodeInfo(node, allNodes);
+    			nodes.push(new point(nodeInfo.lat, nodeInfo.lon));
+    			//if all nodeinfo is here
+    			if(nodes.length === path.nodes.length){
+    				var wayVec = new wayVector(path.id, nodes, path.tags);
+    				wayVectors.push(wayVec);
+    			}
+    		});
+    	});
+        writeRoute(coords, wayVectors);
+    });
 }
 function searchNearestNodes(){
 	nodesOfRoute = [];
 	$.each(coords, function(i, coord){
-	var nearestNode;
-	var smallestDist;
-	$.each(allNodes, function(index, node){
-		var distance = calcDistance(node.lat,node.lon,coord.lat,coord.lon);
-		if(index == 0){
-			smallestDist = distance;
-			nearestNode = node;
-		}
-		if(distance < smallestDist){
-			smallestDist = distance;
-			nearestNode = node;
-		}
-		if(index == (allNodes.length-1)){
-			if(smallestDist <= minimumNodeDistance){
-				nodesOfRoute.push(new coordPair(coord.lat, coord.lon,nearestNode.id));
+		var nearestNode;
+		var smallestDist;
+		$.each(allNodes, function(index, node){
+			var distance = calcDistance(node.lat,node.lon,coord.lat,coord.lon);
+			if(index == 0){
+				smallestDist = distance;
+				nearestNode = node;
 			}
-			else{
-				nodesOfRoute.push(new coordPair(coord.lat, coord.lon,""));
+			if(distance < smallestDist){
+				smallestDist = distance;
+				nearestNode = node;
 			}
-		}
-		
-	});
+			if(index == (allNodes.length-1)){
+				if(smallestDist <= minimumNodeDistance){
+					nodesOfRoute.push(new coordPair(coord.lat, coord.lon,nearestNode.id));
+				}
+				else{
+					nodesOfRoute.push(new coordPair(coord.lat, coord.lon,""));
+				}
+			}
+			
+		});
 	});
 }
 function alreadyInWays(way){
@@ -86,30 +102,28 @@ function fillDataFromOSM() {
 	// go trough all paths
 	$.each(allPaths, function(index, way){
 		if(!alreadyInWays(way)){
-		var nodesOfWay = [];
-		// go trough all nodes of way
-		$.each(way.nodes, function(indexNodes, nodeId){
-			// find a match in allnodes
-			$.each(allNodes, function(indexAll, node){
-				
-				if(node.id == nodeId){
-					var isAlreadyInNodes = $.grep(nodesOfWay, function(nodeinway){ return nodeinway.id == node.id; });
-					if(isAlreadyInNodes.length<1){
-						nodesOfWay.push(new coordPair(node.lat,node.lon,node.id));
-					}
-				}
-				if((indexNodes == (way.nodes.length-1))&&(indexAll == (allNodes.length-1))) {
-					var wayWithCoords = new wayOfRoute(way.id, nodesOfWay, way.tags);
+			var nodesOfWay = [];
+			// go trough all nodes of way
+			$.each(way.nodes, function(indexNodes, nodeId){
+				// find a match in allnodes
+				$.each(allNodes, function(indexAll, node){
 					
-					var isAlreadyIn = $.grep(allWaysWithNodeCoords, function(wayIn){ return wayIn.wayId == way.id; });
-					if(isAlreadyIn.length<1){
-						allWaysWithNodeCoords.push(wayWithCoords);
+					if(node.id == nodeId){
+						var isAlreadyInNodes = $.grep(nodesOfWay, function(nodeinway){ return nodeinway.id == node.id; });
+						if(isAlreadyInNodes.length<1){
+							nodesOfWay.push(new coordPair(node.lat,node.lon,node.id));
+						}
 					}
-					
-				}
+					if((indexNodes == (way.nodes.length-1))&&(indexAll == (allNodes.length-1))) {
+						var wayWithCoords = new wayOfRoute(way.id, nodesOfWay, way.tags);
+						
+						var isAlreadyIn = $.grep(allWaysWithNodeCoords, function(wayIn){ return wayIn.wayId == way.id; });
+						if(isAlreadyIn.length<1){
+							allWaysWithNodeCoords.push(wayWithCoords);
+						}
+					}
+				});
 			});
-			
-		});
 		}else{
 			return false;
 		}
@@ -125,7 +139,6 @@ function checkRouteOSRM(){
 			var nextcoord = coords[index+1];
 			var nearestNodesNextCordArr = $.grep(nodesOfRoute, function(node){ return ((node.lat == nextcoord.lat) && (node.lon == nextcoord.lon)); });
 			var nearestNodeNextCord = nearestNodesNextCordArr[0];
-	
 		}	
 		//if first node is the same as the second we take the located way
 		if((index == 0) && (nearestNode.id == nearestNodeNextCord.id)){
@@ -136,8 +149,6 @@ function checkRouteOSRM(){
 			if(nearestNodesArr.length == 1){
 				
 				var waysForNode = getWaysForNode(nearestNode.id);
-				console.log(nearestNode.id);
-				console.log(waysForNode);
 				//if only one way for nearest node take it
 				if(index <= (coords.length - 2)){
 					if(waysForNode.length==1){
@@ -150,7 +161,7 @@ function checkRouteOSRM(){
 						
 						var waysForNextNode = getWaysForNode(nearestNodeNextCord.id);
 		
-					if(nearestNode.id != nearestNodeNextCord.id){
+						if(nearestNode.id != nearestNodeNextCord.id){
 							
 							//if only one way for the next node take it
 							if(waysForNextNode.length==1){
@@ -207,7 +218,6 @@ function checkRouteOSRM(){
 							}
 						});
 					});
-				
 				}
 			}
 		}
