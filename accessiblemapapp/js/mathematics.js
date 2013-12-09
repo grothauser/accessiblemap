@@ -47,12 +47,7 @@ function calcBearing(lat1, lon1, lat2, lon2) {
 
 function getAzimuth(degreesToNext,degreesToOverNext){
 	var azimuth = degreesToOverNext - degreesToNext;
-	if(azimuth < 0){
-		return 360 + azimuth;
-	}
-	else{
-		return azimuth;
-	}
+	return normaliseBearing(azimuth);
 }
 	
 //output: bearing in degrees to a point. input: compassheading and two points
