@@ -1,9 +1,10 @@
 var destlat, destlon;
 var routeStart, routeEnd;
+var reverseroute = false;
 
 function refreshRoute(){
 	getGPSLocation().done(function(){
-		getRoute(locatedLat, locatedLon, destlat,destlon);
+		getRoute(locatedLat, locatedLon, destlat,destlon, reverseroute);
 		$( "#routingDirectionsRight").empty();
 		$( "#routingDirections").empty();
 	});
@@ -25,10 +26,10 @@ function reverseRoute(){
 	locatedLon = routeEnd.y;
 	destlat = routeStart.x;
 	destlon = routeStart.y;
-
-	getRoute(routeEnd.x, routeEnd.y,routeStart.x, routeStart.y);
+	reverseroute = true;
+	getRoute(routeEnd.x, routeEnd.y,routeStart.x, routeStart.y, reverseroute);
 }
-function getRoute(lat,lon,destlat, destlon) {
+function getRoute(lat,lon,destlat, destlon, reverseroute) {
 		
 	routeStart = new point(lat,lon);
 	routeEnd = new point(destlat,destlon);
@@ -36,7 +37,7 @@ function getRoute(lat,lon,destlat, destlon) {
 	locatedLat = routeStart.x;
 	locatedLon = routeStart.y;
 
-	getRouteOSRM(lat,lon,destlat,destlon);
+	getRouteOSRM(lat,lon,destlat,destlon, reverseroute);
 }
 function writeHTMLButtons(){
 	$('#routingviewright').html('<a href="#" data-icon="refresh" onClick="refreshRoute();"  data-role="button" >Route aktualisieren</a>'+
