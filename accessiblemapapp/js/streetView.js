@@ -9,6 +9,7 @@ var alreadyPrintedPoisRight = new Array();
 var alreadyPrintedPoisLeft = new Array();
 
 function getGPSLocation() {
+	var deferred = $.Deferred();
 	var options = {
 		enableHighAccuracy : true,
 		timeout : 5000,
@@ -25,9 +26,11 @@ function getGPSLocation() {
 			if(foundWay != "undefined"){
 				locatedWay = foundWay;
 				writeActualLocation(foundWay);
+				deferred.resolve();
 			}
 			else{
 				$('#locationOutput').html("Ihr Standort konnte nicht bestimmt werden, bitte geben Sie ihn manuell ein.");
+				deferred.resolve();
 			}
 		});
 	};
@@ -35,11 +38,11 @@ function getGPSLocation() {
 		alert('ERROR(' + err.code + '): ' + err.message);
 	};
 	navigator.geolocation.getCurrentPosition(success, error, options);
+	return deferred;
 }
 function refreshStreetView(){
 	getGPSLocation();
 	var streetViewContent = [];
-	console.log(streetViewContent.length);
 	$('#streetViewContentLeft').empty();
 	$('#streetViewContentRight').empty();
 	
@@ -74,7 +77,7 @@ function getAddressForLatLon() {
 			deferred.resolve(parameters.address);
 		},
 	});
-return deferred;
+	return deferred;
 }
 function getManualLocation() {
 	var streetInput = $('#street').val();
@@ -194,7 +197,6 @@ function getWayFromNominatim(street, number, plz, place) {
 }
 
 function getStreetView() {
-	console.log(locatedWay);
 	var startentry,endentry;
 	var dist = calcDistance( locatedWay.startlat,  locatedWay.startlon,locatedWay.endLat,  locatedWay.endLon);
 	startentry = new tempEntry("", dist,  locatedWay.startlat,  locatedWay.startlon, locatedWay.way);
@@ -266,40 +268,38 @@ function writeStreetViewHTML(enrichedStreet,compassvalue){
 	$('#aroundRight').append(getPOISHTML("right"));
 	$('#streetViewContentRight').trigger('create');
 
-	
 	printOPS(enrichedStreet,compassvalue);
 	setListener();
 	
 }
 function printOPS(finalroute,compval){
-	var frontleftlist = $('#frontleftlist');
-	var backleftlist = $('#backleftlist');
-	var clock;
-	var frontrightlist = $('#frontrightlist');
-	var backrightlist = $('#backrightlist');
-	$.each(finalroute, function(i, segment){
-	
-		$.each(segment.opsLeft, function(index, entry){
-			clock = getClock(calcCompassBearing(entry.lat, entry.lon,locatedLat,locatedLon, compval));
-			if((clock > 9)||(clock<3)) {
-				frontleftlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-				addIntersectionWaysText(frontleftlist, entry);
-			}else{
-				backleftlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-				addIntersectionWaysText(backleftlist, entry);
-			}
-		});
-		$.each(segment.opsRight, function(index, entry){
-			clock = getClock(calcCompassBearing( entry.lat, entry.lon,locatedLat,locatedLon,compval));
-			if((clock > 9)||(clock<3)) {
-				frontrightlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-				addIntersectionWaysText(frontrightlist, entry);
-			}else{
-				backrightlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-				addIntersectionWaysText(backrightlist, entry);
-			}
-		});
-	});
+    var frontleftlist = $('#frontleftlist');
+    var backleftlist = $('#backleftlist');
+    var clock;
+    var frontrightlist = $('#frontrightlist');
+    var backrightlist = $('#backrightlist');
+    $.each(finalroute, function(i, segment){
+        $.each(segment.opsLeft, function(index, entry){
+            clock = getClock(calcCompassBearing(entry.lat, entry.lon,locatedLat,locatedLon, compval));
+            if((clock > 9)||(clock<3)) {
+                frontleftlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
+                addIntersectionWaysText(frontleftlist, entry);
+            }else{
+                backleftlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
+                addIntersectionWaysText(backleftlist, entry);
+            }
+        });
+        $.each(segment.opsRight, function(index, entry){
+            clock = getClock(calcCompassBearing( entry.lat, entry.lon,locatedLat,locatedLon,compval));
+            if((clock > 9)||(clock<3)) {
+                frontrightlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
+                addIntersectionWaysText(frontrightlist, entry);
+            }else{
+                backrightlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
+                addIntersectionWaysText(backrightlist, entry);
+            }
+        });
+    });
 }
 function getPOISHTML(side){
 	var radioname, htmlAround;
@@ -334,17 +334,17 @@ function getPOISHTML(side){
 	return htmlAround;
 }
 
-function addIntersectionWaysText(element, entry){
+function addIntersectionWaysText(textId, entry){
 	if(entry.keyword==="intersection"){
-		element.append(" mit ");
+		$(textId).append(" mit ");
 		$.each(entry.tags, function(k, name){
 			if(k===0){
-				element.append(name);
+				$(textId).append(name);
 			}
 			else if(k===entry.tags.length-1){
-				element.append(" und "+name+". ");
+				$(textId).append(" und "+name+". ");
 			}else{
-				element.append(", "+ name);
+				$(textId).append(", "+ name);
 			}
 		});
 	}
@@ -588,12 +588,12 @@ function isAlreadyInIntersections(intersection, intersections) {
 	return alreadyIn;
 }
 
-function getIsecWarnings(wayVectors){
+function getIsecWarnings(paths){
 	var warnings = [];
-	$.each(wayVectors, function(index, way){
+	$.each(paths, function(index, way){
 		if((way.tags.bridge!=="yes")&&(way.tags.tunnel!=="yes")){
-			for(var i=index+1; i<wayVectors.length; i++){
-				var nextWay = wayVectors[i];
+			for(var i=index+1; i<paths.length; i++){
+				var nextWay = paths[i];
 				if((nextWay.tags.bridge!=="yes")&&(nextWay.tags.tunnel!=="yes")){
 					var warning = testOverlap(way, nextWay);
 					$.each(warning, function(index, warn){
