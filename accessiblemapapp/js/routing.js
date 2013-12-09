@@ -281,7 +281,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 		collapsible = collapsible.concat("</p></div>");
 		deferred.resolve(collapsible);
 	}else{
-		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction+" "+routestep.way.wayId+"</h4>"));
+		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction+" "+routestep.way.wayId+" 4 </h4>"));
 	}
 	return deferred;
 }
