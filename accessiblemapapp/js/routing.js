@@ -272,7 +272,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 			if(collapsible.indexOf("h4") == -1){
 				collapsible = collapsible.concat(head4);
 			}
-			paragraph = paragraph.concat("Höchstgeschwindigkeit: " + routestep.tags.maxspeed + " kmh <br>");
+			paragraph = paragraph.concat("Höchstgeschwindigkeit: " + routestep.tags.maxspeed + " km/h <br>");
 		} 
 	}
 	collapsible = collapsible.concat(paragraph);
