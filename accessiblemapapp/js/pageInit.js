@@ -1,10 +1,9 @@
 function initPage(){
 	var wayPerCord = new Array();
 	var locatedLat, locatedLon;	
-			//prevents loading screen
 			$(document).bind("mobileinit", function() {
 				$.mobile.loadingMessage = false;
-				if ($('#locationOutput').html() == "") {
+				if ($('#locationOutput').html() === "Suche Standort...") {
 					getGPSLocation();
 				}
 			    $.mobile.collapsible.prototype.options.expandCueText = " durch Klicken aufklappen";
@@ -12,7 +11,7 @@ function initPage(){
 				$.mobile.fixedToolbars.setTouchToggleEnabled(false);
 			});
 			 $(document).bind('#location','pagecreate', function(){
-				 if ($('#locationOutput').html() == "") {
+				if ($('#locationOutput').html() === "Suche Standort...") {
 					getGPSLocation();
 				}
 				$('#select-choice-radius').val(getRadius());
@@ -20,10 +19,9 @@ function initPage(){
 			 });
 			
 			$(document).on('pageinit','#location', function() {
-				console.log("pageinit location");
-				 if ($('#locationOutput').html() == "") {
+				if ($('#locationOutput').html() === "Suche Standort...") {
 						getGPSLocation();
-					}
+				}
 				$('#select-choice-radius').val(getRadius());
 				
 				$('#selectLocation').bind("click", function(event,ui){
@@ -32,13 +30,30 @@ function initPage(){
 				$("input[type='checkbox']").bind("change", function(event, ui) {
 					localStorage.setItem($(this).attr('id'), $(this).prop('checked'));
 				});
-
+				var checkbox,id;
+				var defaultValues = new Array('railway=tram_stop','shop=kiosk','restaurant','fast_food','cafe','shop=supermarket','post_box','toilets','highway=bus_stop');
 				$("input[type='checkbox']").each(function() {
-					var isChecked = localStorage.getItem($(this).attr('id'));
-					if(isChecked == "true"){
-						$(this).prop('checked', 'true').checkboxradio("refresh");
-					}else{
-						$(this).removeAttr('checked').checkboxradio("refresh");
+					checkbox = $(this);
+					var isChecked = localStorage.getItem(checkbox.attr('id'));
+					//for the first time we set all orientation points checked
+					if(isChecked === null){
+						if(checkbox.attr('name')==='op'){
+								checkbox.prop('checked', 'true').checkboxradio("refresh");
+								localStorage.setItem(id, checkbox.prop('checked'));
+						}else{
+								id = checkbox.attr('id')
+								if($.inArray(id,defaultValues) != -1){
+									checkbox.prop('checked', 'true').checkboxradio("refresh");
+									localStorage.setItem(id, checkbox.prop('checked'));
+								}
+						}
+					}
+					else{
+						if(isChecked === "true"){
+							checkbox.prop('checked', 'true').checkboxradio("refresh");
+						}else{
+							checkbox.removeAttr('checked').checkboxradio("refresh");
+						}
 					}
 				});
 				 

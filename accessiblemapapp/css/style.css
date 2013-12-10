@@ -68,6 +68,8 @@ h3 {
 .ui-radio{
 	font-size: 11px;
 }
-#locationButton{
-	background-color:#A9A9A9;
-}
+.ui-page .ui-content .ui-btn.location-btn .ui-btn-inner {
+    color: #fff;
+    background: #696969;
+}​
+
