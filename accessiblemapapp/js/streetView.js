@@ -236,86 +236,20 @@ function getStreetContent(startentry,endentry){
 	});
 }
 function writeStreetViewHTML(enrichedStreet,compassvalue){
-	var refreshButton = '<a href="#" data-icon="refresh" onClick="refreshStreetView();" data-role="button" >Ansicht aktualisieren</a>'
-	
-	var collapsibleSetLeft = '<div data-role="collapsible-set" data-theme="c" data-content-theme="d">';
-	var opsCollapsibleLeft = '<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d"><h4>Orientierungspunkte</h4>'
-		+'<h3>Vor Ihnen</h3><div id="inFrontLeft"><ul class="poi-list" id="frontleftlist"></ul></div>'
-		+'<h3>Hinter Ihnen</h3><div id="inBackLeft"><ul class="poi-list" id="backleftlist"></ul></div></div>';
-	var poiCollapsibleLeft = '<div data-role="collapsible" data-inset="false" data-mini="true" data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d"><h4>POIs im Umkreis</h4><div id="aroundLeft"></div></div>';
-	var collapsiblesLeft = opsCollapsibleLeft.concat(poiCollapsibleLeft);
-	
-	collapsibleSetLeft = collapsibleSetLeft.concat(collapsiblesLeft);
-	collapsibleSetLeft = collapsibleSetLeft.concat('</div>');
-	var htmlLeft = refreshButton;
-	htmlLeft = htmlLeft.concat(collapsibleSetLeft);
-	$('#streetViewContentLeft').html(htmlLeft);
-	$('#aroundLeft').append(getPOISHTML("left"));
-	$('#streetViewContentLeft').trigger('create');
-	
-	var collapsibleSetRight = '<div data-role="collapsible-set" data-theme="c" data-content-theme="d">';
-	var opsCollapsibleRight = '<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d"><h4>Orientierungspunkte</h4>'+
-								'<h3>Vor Ihnen</h3><div id="inFrontRight"><ul class="poi-list" id="frontrightlist"></ul></div>'+
-								'<h3>Hinter Ihnen</h3><div id="inBackRight"><ul class="poi-list" id="backrightlist"></ul></div></div>';
-	var poiCollapsibleRight = '<div data-role="collapsible" data-inset="false" data-mini="true" data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d"><h4>POIs im Umkreis</h4><div id="aroundRight"></div></div>';
-	var collapsiblesRight = opsCollapsibleRight.concat(poiCollapsibleRight);
-	
-	collapsibleSetRight = collapsibleSetRight.concat(collapsiblesRight);
-	collapsibleSetRight = collapsibleSetRight.concat('</div>');
-	var htmlRight = refreshButton;
-	htmlRight = htmlRight.concat(collapsibleSetRight);
-	$('#streetViewContentRight').html(htmlRight);
-	$('#aroundRight').append(getPOISHTML("right"));
-	$('#streetViewContentRight').trigger('create');
-
-	printOPS(enrichedStreet,compassvalue);
-	setListener();
-	
+	var refreshButton = '<a href="#" data-icon="refresh" onClick="refreshStreetView();" data-role="button" >Ansicht aktualisieren</a>'	var collapsibleSetLeft = '<div data-role="collapsible-set" data-theme="c" data-content-theme="d">';	var opsCollapsibleLeft = '<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d" id="opsLeft"><h4>Orientierungspunkte in dieser Strasse:</h4>'		+'<h3>Vor Ihnen</h3><div id="inFrontLeft"><ul class="poi-list" id="frontleftlist"></ul></div>'		+'<h3>Hinter Ihnen</h3><div id="inBackLeft"><ul class="poi-list" id="backleftlist"></ul></div></div>';	var poiCollapsibleLeft = '<div data-role="collapsible" data-inset="false" data-mini="true" data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d"><h4>POIs im Umkreis: ' + streetViewContent.length + '</h4><div id="aroundLeft"></div></div>';	var collapsiblesLeft = opsCollapsibleLeft.concat(poiCollapsibleLeft);		collapsibleSetLeft = collapsibleSetLeft.concat(collapsiblesLeft);	collapsibleSetLeft = collapsibleSetLeft.concat('</div>');	var htmlLeft = refreshButton;	htmlLeft = htmlLeft.concat(collapsibleSetLeft);	$('#streetViewContentLeft').html(htmlLeft);	$('#aroundLeft').append(getPOISHTML("left"));	$('#streetViewContentLeft').trigger('create');
+	var collapsibleSetRight = '<div data-role="collapsible-set" data-theme="c" data-content-theme="d">';	var opsCollapsibleRight = '<div data-role="collapsible" data-mini="true"  data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d" id="opsRight"><h4>Orientierungspunkte in dieser Strasse:</h4>'+								'<h3>Vor Ihnen</h3><div id="inFrontRight"><ul class="poi-list" id="frontrightlist"></ul></div>'+								'<h3>Hinter Ihnen</h3><div id="inBackRight"><ul class="poi-list" id="backrightlist"></ul></div></div>';	var poiCollapsibleRight = '<div data-role="collapsible" data-inset="false" data-mini="true" data-collapsed-icon="arrow-r" data-expanded-icon="arrow-d"><h4>POIs im Umkreis: ' + streetViewContent.length + '</h4><div id="aroundRight"></div></div>';	var collapsiblesRight = opsCollapsibleRight.concat(poiCollapsibleRight);
+	collapsibleSetRight = collapsibleSetRight.concat(collapsiblesRight);	collapsibleSetRight = collapsibleSetRight.concat('</div>');
+	var htmlRight = refreshButton;	htmlRight = htmlRight.concat(collapsibleSetRight);	$('#streetViewContentRight').html(htmlRight);	$('#aroundRight').append(getPOISHTML("right"));	$('#streetViewContentRight').trigger('create');
+	printOPS(enrichedStreet,compassvalue);	setListener();
 }
 function printOPS(finalroute,compval){
-    var frontleftlist = $('#frontleftlist');
-    var backleftlist = $('#backleftlist');
-    var clock;
-    var frontrightlist = $('#frontrightlist');
-    var backrightlist = $('#backrightlist');
-    $.each(finalroute, function(i, segment){
-        $.each(segment.opsLeft, function(index, entry){
-            clock = getClock(calcCompassBearing(entry.lat, entry.lon,locatedLat,locatedLon, compval));
-            if((clock > 9)||(clock<3)) {
-                frontleftlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-                addIntersectionWaysText(frontleftlist, entry);
-            }else{
-                backleftlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-                addIntersectionWaysText(backleftlist, entry);
-            }
-        });
-        $.each(segment.opsRight, function(index, entry){
-            clock = getClock(calcCompassBearing( entry.lat, entry.lon,locatedLat,locatedLon,compval));
-            if((clock > 9)||(clock<3)) {
-                frontrightlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-                addIntersectionWaysText(frontrightlist, entry);
-            }else{
-                backrightlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");
-                addIntersectionWaysText(backrightlist, entry);
-            }
-        });
-    });
-}
+    var frontleftlist = $('#frontleftlist');    var backleftlist = $('#backleftlist');    var clock;    var frontrightlist = $('#frontrightlist');    var backrightlist = $('#backrightlist');    var countLeft = 0;    var countRight = 0;
+    $.each(finalroute, function(i, segment){        $.each(segment.opsLeft, function(index, entry){            clock = getClock(calcCompassBearing(entry.lat, entry.lon,locatedLat,locatedLon, compval));            countLeft++;            if((clock > 9)||(clock<3)) {                frontleftlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");                addIntersectionWaysText(frontleftlist, entry);            }else{                backleftlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");                addIntersectionWaysText(backleftlist, entry);            }        });        $.each(segment.opsRight, function(index, entry){            clock = getClock(calcCompassBearing( entry.lat, entry.lon,locatedLat,locatedLon,compval));            countRight++;            if((clock > 9)||(clock<3)) {                frontrightlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");                addIntersectionWaysText(frontrightlist, entry);            }else{                backrightlist.append("<li> " + getKindOfPoi(entry.keyword) + " in " + Math.round(entry.distance*1000) + " Meter");                addIntersectionWaysText(backrightlist, entry);            }        });    });    $('#opsLeft .ui-btn-text').text('Orientierungspunkte in dieser Strasse: ' + countLeft);    $('#opsRight .ui-btn-text').text('Orientierungspunkte in dieser Strasse: ' + countRight);}
 function getPOISHTML(side){
-	var radioname, htmlAround;
-	if(side == "left"){
-		alreadyPrintedPoisLeft = [];
-		radioname = "routeChoiceLeft";
-		htmlAround = '<div data-role="fieldcontain" id="aroundLeftDiv"><fieldset data-role="controlgroup" >';
+	var radioname, htmlAround;	if(side == "left"){		alreadyPrintedPoisLeft = [];		radioname = "routeChoiceLeft";		htmlAround = '<div data-role="fieldcontain" id="aroundLeftDiv"><fieldset data-role="controlgroup" >';
 	}
-	else{
-		alreadyPrintedPoisRight = [];
-		radioname = "routeChoiceRight";
-		htmlAround = '<div data-role="fieldcontain" id="aroundRightDiv"><fieldset data-role="controlgroup" >';
-	}
-	
-	$.each(streetViewContent, function(index, poi){
-		var name = typeof poi.tags.name != "undefined" ? poi.tags.name : "";
+	else{		alreadyPrintedPoisRight = [];		radioname = "routeChoiceRight";		htmlAround = '<div data-role="fieldcontain" id="aroundRightDiv"><fieldset data-role="controlgroup" >';	}
+	$.each(streetViewContent, function(index, poi){		var name = typeof poi.tags.name != "undefined" ? poi.tags.name : "";
 		if((side == 'left') &&($.inArray(poi,alreadyPrintedPoisLeft)==-1)){
 			alreadyPrintedPoisLeft.push(poi);
 			htmlAround = htmlAround.concat('<input type="radio" data-mini="true" data-inline="true" class="radioelem"' +
