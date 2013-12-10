@@ -67,11 +67,7 @@ h3 {
 }
 .ui-radio{
 	font-size: 11px;
-	/*height: 50px;*/
-	/*width: 450px;*/
 }
-
-#selectedPOIButtonLeft{
-	margin-top: 30px;
-	font-size: 11px;
+#locationButton{
+	background-color:#A9A9A9;
 }
