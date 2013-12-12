@@ -1,10 +1,10 @@
 var destlat, destlon;
 var routeStart, routeEnd;
-var reverseroute = false;
+var reverseRoute = false;
 
 function refreshRoute(){
 	getGPSLocation().done(function(){
-		getRoute(locatedLat, locatedLon, destlat,destlon, reverseroute);
+		getRoute(locatedLat, locatedLon, destlat,destlon);
 		$( "#routingDirectionsRight").empty();
 		$( "#routingDirections").empty();
 	});
@@ -26,18 +26,27 @@ function reverseRoute(){
 	locatedLon = routeEnd.y;
 	destlat = routeStart.x;
 	destlon = routeStart.y;
-	reverseroute = true;
-	getRoute(routeEnd.x, routeEnd.y,routeStart.x, routeStart.y, reverseroute);
+
+	getRoute(routeEnd.x, routeEnd.y,routeStart.x, routeStart.y);
 }
-function getRoute(lat,lon,destlat, destlon, reverseroute) {
+function getRoute(lat,lon,destlat, destlon) {
 		
 	routeStart = new point(lat,lon);
 	routeEnd = new point(destlat,destlon);
 	
 	locatedLat = routeStart.x;
 	locatedLon = routeStart.y;
-
-	getRouteOSRM(lat,lon,destlat,destlon, reverseroute);
+	
+	if(destlat == locatedLat && destlon == locatedLon){
+		var html = "<p class=\"firstRouteStep\"> Sie haben Ihr Ziel erreicht.</p>";
+		$('#routingDirections').html(html + "</div>");
+		$('#routingDirections').trigger('create');
+		$('#contentRouting').trigger('create');
+		$('#routingDirectionsRight').html(html + "</div>");
+		$('#contentRoutingRight').trigger('create');
+	}else{
+		getRouteOSRM(lat,lon,destlat,destlon);
+	}
 }
 function writeHTMLButtons(){
 	$('#routingviewright').html('<a href="#" data-icon="refresh" onClick="refreshRoute();"  data-role="button" >Route aktualisieren</a>'+
@@ -54,7 +63,7 @@ function writeHTMLButtons(){
 // write the routing text
 function writeRoute(cords, wayVectors) {
 	if(cords.length === 0){
-		var html = "<p class=\"firstRouteStep\"> Sie haben Ihr Ziel erreicht.</p>";
+		var html = "<p class=\"firstRouteStep\"> Keine Fussgängernavigation möglich.</p>";
 		$('#routingDirections').html(html + "</div>");
 		$('#routingDirections').trigger('create');
 		$('#contentRouting').trigger('create');
@@ -62,7 +71,7 @@ function writeRoute(cords, wayVectors) {
 		$('#contentRoutingRight').trigger('create');
 	}else{
 		writeHTMLButtons();
-		var tempRoute = new Array();
+		var tempRoute = [];
 		var distance,direction,degreesToNext;
 		var degreesToOverNext, azimuth;
 	
@@ -118,28 +127,16 @@ function writeRoute(cords, wayVectors) {
 				}
 				else{
 					tempRoute.push(new tempEntry("end", 0, 	coordinate.lat, coordinate.lon,"",""));
-					
 				}
 			});
 			var cleanedRoute = cleanRoute(tempRoute);
-			var warnings = new Array();//getIsecWarnings(wayVectors);
+			var warnings = getIsecWarnings(wayVectors);
 			enricheWays(cleanedRoute, warnings).done(function(enrichedRoute){
 				writeApp(enrichedRoute, "left");
 				writeApp(enrichedRoute, "right");
 			});
 		});
 	}
-}
-function waymatch(wayId, tags){
-	this.wayId = wayId;
-	this.tags = tags;
-}
-function distanceSort(a,b){
-	if (a.distance < b.distance)
-		return -1;
-	if (a.distance > b.distance)
-		return 1;
-	return 0;
 }
 
 function getWayMatchForCord(lat, lon) {
@@ -202,9 +199,11 @@ function isTheSame(routeStep,nextStep){
 }
 
 function writeApp(list, side) {
+	var degreesOfRoute = [];
 	var html = '<div data-role="collapsible-set" data-theme="c" data-content-theme="d">';	
 	$.each(list,function(index, routeStep) {
 		var indexIncr = (index + 1);
+		
 		//first step
 		if (index === 0) {
 			if(routeStep.distance !== 0){
@@ -229,36 +228,40 @@ function writeApp(list, side) {
 					$('#contentRoutingRight').trigger('create');
 				}
 		} else {
+			degreesOfRoute.push(calcBearing(routeStep.lat, routeStep.lon, list[indexIncr].lat, list[indexIncr].lon));
 			if(side == "left"){
-			   getCollapsibleForTags(indexIncr, routeStep, routeStep.opsLeft).done(function(collapsible){
+			   getCollapsibleForTags(indexIncr, routeStep, routeStep.opsLeft, degreesOfRoute[index-1]).done(function(collapsible){
 				   html = html.concat(collapsible);
 				});
 			}else{
-				  getCollapsibleForTags(indexIncr, routeStep, routeStep.opsRight).done(function(collapsible){
+				  getCollapsibleForTags(indexIncr, routeStep, routeStep.opsRight, degreesOfRoute[index-1]).done(function(collapsible){
 					   html = html.concat(collapsible);
 				});
 			}
 		}
 	});
 }
-function getCollapsibleForTags(index,routestep, navipois){
+function getCollapsibleForTags(index,routestep, navipois, degreesToNext){
 	var deferred = $.Deferred();
 	var typeOfWay = typeof routestep.tags != "undefined" ? getTypeOfWay(routestep.tags) : "Strasse";
 	var collapsible = '<div data-role="collapsible" data-mini="true" class="routingcollapsible" data-collapsed-icon="arrow-r" data-iconpos="right" data-expanded-icon="arrow-d" id=" '+ index + '" >';
-	var paragraph = '<p class="firstRouteStep">';
+	var paragraph = "<p class=\"firstRouteStep\">";
 	var head4;
 	var result = "";
 	if(navipois.length > 0){
-		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +' </h4>'; 
+		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +".</h4>"; 
 		collapsible = collapsible.concat(head4);
 		$.each(navipois, function(i, poi){
-			var distrounded = Math.round(poi.distance*1000);
-			var poiname = getKindOfPoi(poi.keyword) != "Unbekannt" ?  getKindOfPoi(poi.keyword) : poi.keyword;
-			paragraph = paragraph.concat( poiname + " nach " +distrounded + " Meter <br>");
+			var clock = getClock(calcCompassBearing(poi.lat, poi.lon,routestep.lat, routestep.lon, degreesToNext));
+			if((clock > 9)||(clock<3)) {
+				var distrounded = Math.round(poi.distance*1000);
+				var poiname = getKindOfPoi(poi.keyword) != "Unbekannt" ?  getKindOfPoi(poi.keyword) : poi.keyword;
+				paragraph = paragraph.concat( poiname + " nach " +distrounded + " Meter <br>");
+			}
 		});
 	}
 	if(typeof routestep.tags != "undefined" ){
-		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction  +'</h4>'; 
+		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +".</h4>"; 
 		if(typeof routestep.tags.surface != "undefined"){
 			var surface = getSurface(routestep.tags.surface);
 			if(surface !=="-"){
@@ -272,7 +275,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 			if(collapsible.indexOf("h4") == -1){
 				collapsible = collapsible.concat(head4);
 			}
-			paragraph = paragraph.concat("Höchstgeschwindigkeit: " + routestep.tags.maxspeed + " km/h <br>");
+			paragraph = paragraph.concat("Höchstgeschwindigkeit: " + routestep.tags.maxspeed + " kmh <br>");
 		} 
 	}
 	collapsible = collapsible.concat(paragraph);
@@ -280,7 +283,7 @@ function getCollapsibleForTags(index,routestep, navipois){
 		collapsible = collapsible.concat("</p></div>");
 		deferred.resolve(collapsible);
 	}else{
-		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction+" </h4>"));
+		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +".</p>"));
 	}
 	return deferred;
 }

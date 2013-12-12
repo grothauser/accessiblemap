@@ -57,6 +57,10 @@ function way( wayId, node, tags, lat, lon){
 	this.lat = lat;
 	this.lon = lon;
 }
+function waymatch(wayId, tags){
+	this.wayId = wayId;
+	this.tags = tags;
+}
 function streetViewEntry(id,lat,lon,name, clock, distance, tags){
 	this.id = id;
 	this.lat = lat;
@@ -84,16 +88,17 @@ function finalElement(distance,direction,lat,lon,tags,opsLeft, opsRight,way){
 	this.way = way;
 }
 
-function intersection(lat, lon, wayTagsA, wayTagsB, keyword, wayIdA, wayIdB) {
-	var ways = [];
-	var wayIds = [];
+function intersection(lat, lon, ways, keyword, wayIds) {
 	this.lat = lat;
 	this.lon = lon;
-	ways.push(getTypeOfWay(wayTagsA));
-	ways.push(getTypeOfWay(wayTagsB));
 	this.tags = ways;
 	this.keyword = keyword;
-	wayIds.push(wayIdA);
-	wayIds.push(wayIdB);
 	this.wayIds = wayIds;
+}
+function roadworkEntry(lat, lon, wayId, tags){
+	this.lat = lat;
+	this.lon = lon;
+	this.keyword = "roadwork";
+	this.wayId = wayId;
+	this.tags = tags;
 }

@@ -29,9 +29,6 @@ function rad2deg(a) {
 function normaliseBearing(degrees){
 	return (degrees + 360)%360;
 }
-function frac(a) {
-	return (a - Math.floor(a));
-}
 function calcBearing(lat1, lon1, lat2, lon2) {
 	// source : http://www.movable-type.co.uk/scripts/latlong.html
 	var lat1 = deg2rad(lat1);
@@ -47,17 +44,12 @@ function calcBearing(lat1, lon1, lat2, lon2) {
 
 function getAzimuth(degreesToNext,degreesToOverNext){
 	var azimuth = degreesToOverNext - degreesToNext;
-	if(azimuth < 0){
-		return 360 + azimuth;
-	}
-	else{
-		return azimuth;
-	}
+	return normaliseBearing(azimuth);
 }
 	
 //output: bearing in degrees to a point. input: compassheading and two points
-function calcCompassBearing(lat1, lon1, lat2, lon2, compassHeading) {
-	var destinationBearing = normaliseBearing(calcBearing(lat2,lon2,lat1,lon1));
+function calcCompassBearing(destlat, destlon, startlat, startlon, compassHeading) {
+	var destinationBearing = normaliseBearing(calcBearing(startlat,startlon,destlat,destlon));
 	if(destinationBearing > compassHeading){
 		return destinationBearing - compassHeading;
 	}else if(compassHeading > destinationBearing){
@@ -117,7 +109,7 @@ function calculateCoordinatesForBuffer(lat, lon, bearing) {
 	return new coordPair(rad2deg(rlat), rad2deg(rlon));
 }
 
-//check if a coordinate is in range of a multypoligon
+//check if a coordinate is in range of a multipolygon
 function isPip(lat, lon, multipolyCoords){
 	var isInPolygon = false;
 	for(var k=0; k<multipolyCoords.length; k++){
@@ -235,4 +227,12 @@ function calcDistance(lat1, lon1, lat2, lon2) {
 	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
 	var d = R * c;
 	return d;
+}
+
+function distanceSort(a,b){
+	if (a.distance < b.distance)
+		return -1;
+	if (a.distance > b.distance)
+		return 1;
+	return 0;
 }

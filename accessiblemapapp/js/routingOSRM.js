@@ -4,9 +4,7 @@ var allNodes = [];
 var allWaysWithNodeCoords = [];
 var nodesOfRoute = [];
 var minimumNodeDistance = 0.015;
-var reversedRoute = false;
-function getRouteOSRM(lat1, lon1,lat2, lon2,reverseroute) {
-	reversedRoute = reverseroute;
+function getRouteOSRM(lat1, lon1,lat2, lon2) {
 	$.ajax({
 		url: "js/proxy.php?url="+encodeURIComponent("http://routing.osm.ch/routed-foot/viaroute?loc="+lat1+","+lon1+"&loc="+lat2+","+lon2+"&output=gpx"),
 		type: 'GET',
@@ -24,34 +22,51 @@ function extractCoordinates(data){
 	$(data).find('rtept').each(function(){
 		coords.push(new coordPair($(this)[0].attributes[0].value , $(this)[0].attributes[1].value));
 	});
-	checkCompass().done(function(compval){
-		getSide(compval, coords[0], coords[1], "routing");
-	});
-	fillRouteWithOverpassData(coords);
+	if(coords.length !== 0){
+		checkCompass().done(function(compval){
+			getSide(compval, coords[0], coords[1], "routing");
+		});
+		fillRouteWithOverpassData(coords);
+	}
+	else{
+		$.mobile.changePage($("#routing"), "none");
+		writeRoute(coords);
+	}
 	return coords;
 }
 function fillRouteWithOverpassData(routeCoords){
-	allPaths = new Array();
-	allNodes = new Array();
-	allWaysWithNodeCoords = new Array();
-	var ajaxcounter = 1;
+	allPaths = [];
+	allNodes = [];
+	allWaysWithNodeCoords = [];
 	var bbox = getMinMaxForRoute(routeCoords);
 	// go trough all coords of the route
-		searchOverpassForNearestNode(bbox,'way["highway"]').done(function(allWays,allNodesResult){
-			ajaxcounter--;
-			$.each(allWays, function(index, path){
-				allPaths.push(path);
-			});
-			$.each(allNodesResult, function(index, node){
-				allNodes.push(node);
-			});
-			if(ajaxcounter==0){
-				searchNearestNodes();
-				fillDataFromOSM();
-				checkRouteOSRM();
-				writeRoute(coords);
-			}
+	searchOverpassForNearestNode(bbox,'way["highway"]').done(function(allWays,allNodesResult){
+		$.each(allWays, function(index, path){
+			allPaths.push(path);
 		});
+		$.each(allNodesResult, function(index, node){
+			allNodes.push(node);
+		});
+		searchNearestNodes();
+		fillDataFromOSM();
+		checkRouteOSRM();
+		var wayVectors = [];
+        $.each(allPaths, function(i, path){
+    		var nodes = [];
+    		//get all nodes of way
+    		$.each(path.nodes, function(index, node){
+    			//get node info but not for the last
+    			var nodeInfo = getNodeInfo(node, allNodes);
+    			nodes.push(new point(nodeInfo.lat, nodeInfo.lon));
+    			//if all nodeinfo is here
+    			if(nodes.length === path.nodes.length){
+    				var wayVec = new wayVector(path.id, nodes, path.tags);
+    				wayVectors.push(wayVec);
+    			}
+    		});
+    	});
+		writeRoute(coords, wayVectors);
+	});
 }
 function searchNearestNodes(){
 	nodesOfRoute = [];
@@ -119,7 +134,7 @@ function fillDataFromOSM() {
 }
 function checkRouteOSRM(){
 	// nodesOfRoute contains the nearest node for a coordinate
-	wayPerCord = new Array();
+	wayPerCord = [];
 	$.each(coords, function(index, coord){
 		var nearestNodesArr = $.grep(nodesOfRoute, function(node){ return ((node.lat == coord.lat) && (node.lon == coord.lon)); });
 		var nearestNode = nearestNodesArr[0];
@@ -127,11 +142,11 @@ function checkRouteOSRM(){
 			var nextcoord = coords[index+1];
 			var nearestNodesNextCordArr = $.grep(nodesOfRoute, function(node){ return ((node.lat == nextcoord.lat) && (node.lon == nextcoord.lon)); });
 			var nearestNodeNextCord = nearestNodesNextCordArr[0];
-	
 		}	
 		//if first node is the same as the second we take the located way
-		if((index == 0) && (nearestNode.id == nearestNodeNextCord.id) && (!reversedRoute)){
-				wayPerCord.push(new way(locatedWay.way.wayId, nearestNode.id,locatedWay.way.tags,coord.lat,coord.lon));
+		if((index == 0) && (nearestNode.id == nearestNodeNextCord.id)){
+			wayPerCord.push(new way(locatedWay.way.wayId, nearestNode.id,locatedWay.way.tags,coord.lat,coord.lon));
+			
 		}else if(nearestNode.id != ""){
 			//if coord has a nearest node 
 			if(nearestNodesArr.length == 1){
@@ -149,7 +164,7 @@ function checkRouteOSRM(){
 						
 						var waysForNextNode = getWaysForNode(nearestNodeNextCord.id);
 		
-					if(nearestNode.id != nearestNodeNextCord.id){
+						if(nearestNode.id != nearestNodeNextCord.id){
 							
 							//if only one way for the next node take it
 							if(waysForNextNode.length==1){
@@ -179,6 +194,7 @@ function checkRouteOSRM(){
 									$.each(waysForNode, function(inode, wayOfNode){
 										//takes the first common way both of the nodes have (possible issue if more ways contain the same two nodes)
 										if(wayOfNode.wayId == wayOfOverNextNode.wayId){
+											console.log("4 way for " + nearestNode.id + " selected: " + wayOfNode.wayId);
 											wayPerCord.push(new way(wayOfNode.wayId,nearestNode.id,wayOfNode.tags, coord.lat, coord.lon));
 											return false;
 										}
