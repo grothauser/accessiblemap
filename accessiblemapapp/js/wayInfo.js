@@ -283,7 +283,7 @@ function getRoadworks(route){
 	$.each(route, function(index, coord){
 		if(coord.way !== "" && typeof coord.way !== "undefined" && typeof coord.way.wayId !== "undefined"){
 			$.ajax({
-				url: "js/proxy.php?url="
+				url: "proxy.php?url="
 					+ encodeURIComponent('http://trobdb.hsr.ch/getTrafficObstruction?osmid='+coord.way.wayId),
 				type : 'GET',
 				dataType : 'json',
@@ -357,7 +357,8 @@ function isInZurich(route){
 	var multipolyCoords = [];
 	var d = $.Deferred();
 	$.ajax({
-		url : "../data/export.json",
+		url : "data/export.json",
+		data: "json",
 		success : function(data) {
 			//Get Zurich City Polygon
 			for (var i = 0; i < data.features[0].geometry.coordinates.length; i++) {

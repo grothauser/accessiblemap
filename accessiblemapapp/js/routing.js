@@ -1,10 +1,10 @@
 var destlat, destlon;
 var routeStart, routeEnd;
-var reverseRoute = false;
+var reverseroute = false;
 
 function refreshRoute(){
 	getGPSLocation().done(function(){
-		getRoute(locatedLat, locatedLon, destlat,destlon);
+		getRoute(locatedLat, locatedLon, destlat,destlon, reverseroute);
 		$( "#routingDirectionsRight").empty();
 		$( "#routingDirections").empty();
 	});
@@ -26,10 +26,11 @@ function reverseRoute(){
 	locatedLon = routeEnd.y;
 	destlat = routeStart.x;
 	destlon = routeStart.y;
+	reverseroute = true;
 
 	getRoute(routeEnd.x, routeEnd.y,routeStart.x, routeStart.y);
 }
-function getRoute(lat,lon,destlat, destlon) {
+function getRoute(lat,lon,destlat, destlon, reverseroute) {
 		
 	routeStart = new point(lat,lon);
 	routeEnd = new point(destlat,destlon);
@@ -45,7 +46,7 @@ function getRoute(lat,lon,destlat, destlon) {
 		$('#routingDirectionsRight').html(html + "</div>");
 		$('#contentRoutingRight').trigger('create');
 	}else{
-		getRouteOSRM(lat,lon,destlat,destlon);
+		getRouteOSRM(lat,lon,destlat,destlon, reverseroute);
 	}
 }
 function writeHTMLButtons(){
@@ -275,7 +276,7 @@ function getCollapsibleForTags(index,routestep, navipois, degreesToNext){
 			if(collapsible.indexOf("h4") == -1){
 				collapsible = collapsible.concat(head4);
 			}
-			paragraph = paragraph.concat("Höchstgeschwindigkeit: " + routestep.tags.maxspeed + " kmh <br>");
+			paragraph = paragraph.concat("Höchstgeschwindigkeit: " + routestep.tags.maxspeed + " km/h <br>");
 		} 
 	}
 	collapsible = collapsible.concat(paragraph);
@@ -283,7 +284,7 @@ function getCollapsibleForTags(index,routestep, navipois, degreesToNext){
 		collapsible = collapsible.concat("</p></div>");
 		deferred.resolve(collapsible);
 	}else{
-		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +".</p>"));
+		deferred.resolve(paragraph.concat(index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +".</h4>"));
 	}
 	return deferred;
 }

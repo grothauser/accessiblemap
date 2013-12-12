@@ -4,7 +4,9 @@ var allNodes = [];
 var allWaysWithNodeCoords = [];
 var nodesOfRoute = [];
 var minimumNodeDistance = 0.015;
-function getRouteOSRM(lat1, lon1,lat2, lon2) {
+var reversedRoute = false;
+function getRouteOSRM(lat1, lon1,lat2, lon2, reverseroute) {
+	reversedRoute = reverseroute;
 	$.ajax({
 		url: "js/proxy.php?url="+encodeURIComponent("http://routing.osm.ch/routed-foot/viaroute?loc="+lat1+","+lon1+"&loc="+lat2+","+lon2+"&output=gpx"),
 		type: 'GET',
@@ -144,7 +146,7 @@ function checkRouteOSRM(){
 			var nearestNodeNextCord = nearestNodesNextCordArr[0];
 		}	
 		//if first node is the same as the second we take the located way
-		if((index == 0) && (nearestNode.id == nearestNodeNextCord.id)){
+		if((index == 0) && (nearestNode.id == nearestNodeNextCord.id)&& (!reversedRoute)){
 			wayPerCord.push(new way(locatedWay.way.wayId, nearestNode.id,locatedWay.way.tags,coord.lat,coord.lon));
 			
 		}else if(nearestNode.id != ""){
@@ -194,7 +196,6 @@ function checkRouteOSRM(){
 									$.each(waysForNode, function(inode, wayOfNode){
 										//takes the first common way both of the nodes have (possible issue if more ways contain the same two nodes)
 										if(wayOfNode.wayId == wayOfOverNextNode.wayId){
-											console.log("4 way for " + nearestNode.id + " selected: " + wayOfNode.wayId);
 											wayPerCord.push(new way(wayOfNode.wayId,nearestNode.id,wayOfNode.tags, coord.lat, coord.lon));
 											return false;
 										}
