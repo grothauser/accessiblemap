@@ -283,7 +283,7 @@ function getRoadworks(route){
 	$.each(route, function(index, coord){
 		if(coord.way !== "" && typeof coord.way !== "undefined" && typeof coord.way.wayId !== "undefined"){
 			$.ajax({
-				url: "proxy.php?url="
+				url: "../js/proxy.php?url="
 					+ encodeURIComponent('http://trobdb.hsr.ch/getTrafficObstruction?osmid='+coord.way.wayId),
 				type : 'GET',
 				dataType : 'json',
