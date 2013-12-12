@@ -35,31 +35,17 @@ function orientationEntry(lat,lon,keyword, tags, distance){
 	this.distance = distance;
 }
 
-function coordWayMatch(wayId, lat, lon,nodeId,tags) {
-	this.wayId = wayId;
-	this.lat = lat;
-	this.lon = lon;
-	this.nodeId = nodeId;
-	this.tags = tags; 
-}
-
-function wayOfRoute(wayId, nodes,tags, lat, lon) {
+function wayOfRoute(wayId, nodes,tags) {
 	this.wayId = wayId;
 	this.nodes = nodes;
 	this.tags = tags;
-	this.lat = lat;
-	this.lon= lon;
 }
-function way( wayId, node, tags, lat, lon){
+function way( wayId, tags, node, lat, lon){
 	this.wayId = wayId;
-	this.node = node;
 	this.tags = tags;
+	this.node = node;
 	this.lat = lat;
 	this.lon = lon;
-}
-function waymatch(wayId, tags){
-	this.wayId = wayId;
-	this.tags = tags;
 }
 function streetViewEntry(id,lat,lon,name, clock, distance, tags){
 	this.id = id;
@@ -91,6 +77,7 @@ function finalElement(distance,direction,lat,lon,tags,opsLeft, opsRight,way){
 function intersection(lat, lon, ways, keyword, wayIds) {
 	this.lat = lat;
 	this.lon = lon;
+	//names
 	this.tags = ways;
 	this.keyword = keyword;
 	this.wayIds = wayIds;

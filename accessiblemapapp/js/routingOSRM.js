@@ -5,6 +5,8 @@ var allWaysWithNodeCoords = [];
 var nodesOfRoute = [];
 var minimumNodeDistance = 0.015;
 var reversedRoute = false;
+var minDist = 3; 
+
 function getRouteOSRM(lat1, lon1,lat2, lon2, reverseroute) {
 	reversedRoute = reverseroute;
 	$.ajax({
@@ -15,11 +17,11 @@ function getRouteOSRM(lat1, lon1,lat2, lon2, reverseroute) {
 			console.error("error");
 		},
 		success : function(data) {
-			extractCoordinates(data);
+			extractCoordinates(data,lat1, lon1,lat2, lon2);
 		},
 	});
 }
-function extractCoordinates(data){
+function extractCoordinates(data,lat1, lon1,lat2, lon2){
 	coords = [];
 	$(data).find('rtept').each(function(){
 		coords.push(new coordPair($(this)[0].attributes[0].value , $(this)[0].attributes[1].value));
@@ -31,8 +33,23 @@ function extractCoordinates(data){
 		fillRouteWithOverpassData(coords);
 	}
 	else{
+		var html;
+		if(calcDistance(lat1, lon1, lat2, lon2)*1000 < minDist){
+			html = "<p class=\"firstRouteStep\"> Sie haben Ihr Ziel erreicht.</p>";
+			$('#routingDirections').html(html + "</div>");
+			$('#routingDirections').trigger('create');
+			$('#contentRouting').trigger('create');
+			$('#routingDirectionsRight').html(html + "</div>");
+			$('#contentRoutingRight').trigger('create');
+		}else{
+			html = "<p class=\"firstRouteStep\"> Keine Fussgängernavigation möglich.</p>";
+			$('#routingDirections').html(html + "</div>");
+			$('#routingDirections').trigger('create');
+			$('#contentRouting').trigger('create');
+			$('#routingDirectionsRight').html(html + "</div>");
+			$('#contentRoutingRight').trigger('create');
+		}
 		$.mobile.changePage($("#routing"), "none");
-		writeRoute(coords);
 	}
 	return coords;
 }
@@ -124,10 +141,8 @@ function fillDataFromOSM() {
 					if(isAlreadyIn.length<1){
 						allWaysWithNodeCoords.push(wayWithCoords);
 					}
-					
 				}
 			});
-			
 		});
 		}else{
 			return false;
@@ -147,7 +162,7 @@ function checkRouteOSRM(){
 		}	
 		//if first node is the same as the second we take the located way
 		if((index == 0) && (nearestNode.id == nearestNodeNextCord.id)&& (!reversedRoute)){
-			wayPerCord.push(new way(locatedWay.way.wayId, nearestNode.id,locatedWay.way.tags,coord.lat,coord.lon));
+			wayPerCord.push(new way(locatedWay.way.wayId, locatedWay.way.tags, nearestNode.id,coord.lat,coord.lon));
 			
 		}else if(nearestNode.id != ""){
 			//if coord has a nearest node 
@@ -157,7 +172,7 @@ function checkRouteOSRM(){
 				//if only one way for nearest node take it
 				if(index <= (coords.length - 2)){
 					if(waysForNode.length==1){
-						wayPerCord.push(new way(waysForNode[0].wayId, nearestNode.id,waysForNode[0].tags,coord.lat, coord.lon));
+						wayPerCord.push(new way(waysForNode[0].wayId, waysForNode[0].tags,nearestNode.id,coord.lat, coord.lon));
 					}else{
 						var nextcoord = coords[index+1];
 						var nearestNodesNextCordArr = $.grep(nodesOfRoute, function(node){ return ((node.lat == nextcoord.lat) && (node.lon == nextcoord.lon)); });
@@ -170,14 +185,14 @@ function checkRouteOSRM(){
 							
 							//if only one way for the next node take it
 							if(waysForNextNode.length==1){
-								wayPerCord.push(new way(waysForNextNode[0].wayId, nearestNode.id,waysForNextNode[0].tags,coord.lat, coord.lon));
+								wayPerCord.push(new way(waysForNextNode[0].wayId, waysForNextNode[0].tags, nearestNode.id,coord.lat, coord.lon));
 							}else{
 								//see which way they have in common
 								$.each(waysForNode, function(i, wayOfNode){
 									$.each(waysForNextNode, function(inode, wayOfNextNode){
 										//takes the first common way both of the nodes have (possible issue if more ways contain the same two nodes)
 										if(wayOfNextNode.wayId == wayOfNode.wayId){
-											wayPerCord.push(new way(wayOfNode.wayId,nearestNode.id,wayOfNode.tags, coord.lat, coord.lon));
+											wayPerCord.push(new way(wayOfNode.wayId,wayOfNode.tags, nearestNode.id, coord.lat, coord.lon));
 											return false;
 										}
 									});
@@ -196,11 +211,10 @@ function checkRouteOSRM(){
 									$.each(waysForNode, function(inode, wayOfNode){
 										//takes the first common way both of the nodes have (possible issue if more ways contain the same two nodes)
 										if(wayOfNode.wayId == wayOfOverNextNode.wayId){
-											wayPerCord.push(new way(wayOfNode.wayId,nearestNode.id,wayOfNode.tags, coord.lat, coord.lon));
+											wayPerCord.push(new way(wayOfNode.wayId,wayOfNode.tags, nearestNode.id, coord.lat, coord.lon));
 											return false;
 										}
 									});
-		
 								});
 							}
 						}
@@ -217,7 +231,7 @@ function checkRouteOSRM(){
 						$.each(waysForNode, function(inode, wayOfNode){
 							//takes the first common way both of the nodes have (possible issue if more ways contain the same two nodes)
 							if(wayOfNode.wayId == wayOfLastNode.wayId){
-								wayPerCord.push(new way(wayOfNode.wayId,nearestNode.id,wayOfNode.tags, coord.lat, coord.lon));
+								wayPerCord.push(new way(wayOfNode.wayId,wayOfNode.tags, nearestNode.id, coord.lat, coord.lon));
 								return false;
 							}
 						});
@@ -242,27 +256,4 @@ function getWaysForNode(nodeId) {
 		});
 	});
 	return waysArray;
-}
-
-function wayIsInArr(way, array){
-	for(var i = 0; i < array.length; i++){
-		if(way.id == array[i].id){
-			return true;
-		}
-	}
-	return false;
-}
-
-function getWaysWithCommonNodes(node,waysForCoords,waysForNextCoords,lat,lon,nextNodeLat,nextNodeLon){
-	var waysWithCommonNodes = [];
-
-	// check all ways of first coordinate
-	$.each(waysForCoords, function(index, way){
-		// if one of their ways is also in ways for the next coordinate
-		if(wayIsInArr(way, waysForNextCoords)){	
-			var match = new coordWayMatch(way.wayId, lat, lon,node.id,way.tags);
-				waysWithCommonNodes.push(match);
-			}
-	});
-	return waysWithCommonNodes;
 }

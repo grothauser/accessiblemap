@@ -116,8 +116,8 @@ function isPip(lat, lon, multipolyCoords){
 		var nvert = multipolyCoords[k].length;
 		var vertx = []; var verty = [];
 		for(var i=0; i<nvert; i++){
-			vertx.push(multipolyCoords[k][i].lat);
-			verty.push(multipolyCoords[k][i].lon);
+			vertx.push(multipolyCoords[k][i].x);
+			verty.push(multipolyCoords[k][i].y);
 		}
 		var i, j;
 		for (i=0, j=nvert-1; i<nvert; j=i++) {

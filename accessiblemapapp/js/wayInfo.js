@@ -340,7 +340,7 @@ function getRoadworks(route){
 
 function findNearestRoadworkNode(coord, polyPoints){
 	var distance;
-	var  minPoint = polyPoints[0];
+	var minPoint = polyPoints[0];
 	var min = calcDistance(coord.lat, coord.lon, polyPoints[0].lat, polyPoints[0].lon);
 	$.each(polyPoints, function(index, point){
 		distance = calcDistance(coord.lat, coord.lon, point.lat, point.lon);
@@ -365,7 +365,7 @@ function isInZurich(route){
 				var polyCoords = [];
 				for (var a = 0; a < data.features[0].geometry.coordinates[i].length; a++) {
 					for (var k = 0; k < data.features[0].geometry.coordinates[i][0].length; k++) {
-						polyCoords.push(new coordPair(data.features[0].geometry.coordinates[i][0][k][1], data.features[i].geometry.coordinates[a][0][k][0]));
+						polyCoords.push(new point(data.features[0].geometry.coordinates[i][0][k][1], data.features[i].geometry.coordinates[a][0][k][0]));
 					}
 				}
 				multipolyCoords.push(polyCoords);
