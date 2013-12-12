@@ -38,7 +38,9 @@ function getRoute(lat,lon,destlat, destlon, reverseroute) {
 	locatedLat = routeStart.x;
 	locatedLon = routeStart.y;
 	
-	if(destlat == locatedLat && destlon == locatedLon){
+	var distance = calcDistance(locatedLat, locatedLon, destlat, destlon);
+	
+	if(distance *1000 < 3){
 		var html = "<p class=\"firstRouteStep\"> Sie haben Ihr Ziel erreicht.</p>";
 		$('#routingDirections').html(html + "</div>");
 		$('#routingDirections').trigger('create');

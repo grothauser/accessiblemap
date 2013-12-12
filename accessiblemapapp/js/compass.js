@@ -2,7 +2,6 @@
 function checkCompass(){
 	var deferred = $.Deferred();
 	if(window.DeviceOrientationEvent) {
-		console.log("compass available");
 		window.setInterval(function(){
 		window.addEventListener('deviceorientation', function(event) {
 			//iOs
