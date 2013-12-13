@@ -183,7 +183,7 @@ function getPointsInBuffer(buffer, selPoi, lat,lon, distance) {
 		}
 		if (isInBuffer === true) {
 			var distToPoi = calcDistance(lat,lon,selPoi[k].lat,selPoi[k].lon);
-			if(distToPoi <= (distance) ){
+			if(distToPoi*1000 <= (distance) ){
 				poisInStreetBuffer.push(new orientationEntry(selPoi[k].lat, selPoi[k].lon,selPoi[k].keyword,selPoi[k].tags,distToPoi));
 			}
 		}

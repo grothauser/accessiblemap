@@ -95,19 +95,22 @@ function writeRoute(cords, wayVectors) {
 				var way = getWayMatchForCord(coordinate.lat, coordinate.lon);
 				
 				if(typeof way != "undefined"){
-					tempRoute.push(new tempEntry(direction, distance, 	coordinate.lat, coordinate.lon,degreesToNext,way));
+					tempRoute.push(new tempEntry(direction, distance, coordinate.lat, coordinate.lon,degreesToNext,way));
 				}
 				else{
-					tempRoute.push(new tempEntry(direction, distance, 	coordinate.lat, coordinate.lon,degreesToNext,""));
+					tempRoute.push(new tempEntry(direction, distance, coordinate.lat, coordinate.lon,degreesToNext,""));
 				}
 			}else if(index == (cords.length-2)){
 				nextCoordinate = cords[index + 1];
 				degreesToNext = normaliseBearing(calcBearing(coordinate.lat, coordinate.lon,nextCoordinate.lat, nextCoordinate.lon));
+				degreesToOverNext = normaliseBearing(calcBearing(nextCoordinate.lat, nextCoordinate.lon, destlat, destlon));
 				distance = calcDistance(coordinate.lat, coordinate.lon,	nextCoordinate.lat, nextCoordinate.lon);
-				direction = getDirectionForDegrees(degreesToNext);
+				
+				azimuth = getAzimuth(degreesToNext, degreesToOverNext);
+				direction = getDirectionForDegrees(azimuth);
 				
 				var way = getWayMatchForCord(coordinate.lat, coordinate.lon);
-				tempRoute.push(new tempEntry(direction, distance, 	coordinate.lat, coordinate.lon,degreesToNext,way));
+				tempRoute.push(new tempEntry(direction, distance, coordinate.lat, coordinate.lon,degreesToNext,way));
 			}
 			else{
 				tempRoute.push(new tempEntry("end", 0, 	coordinate.lat, coordinate.lon,"",""));
@@ -235,7 +238,7 @@ function getCollapsibleForTags(index,routestep, navipois, degreesToNext){
 		head4 = "<h4> " + index + ". " + typeOfWay + " für " + routestep.distance + " Meter folgen, dann " + routestep.direction +".</h4>"; 
 		collapsible = collapsible.concat(head4);
 		$.each(navipois, function(i, poi){
-			var clock = getClock(calcCompassBearing(poi.lat, poi.lon,routestep.lat, routestep.lon, degreesToNext));
+			var clock = getClock(calcCompassBearing(poi.lat, poi.lon,routestep.lat, routestep.lon, normaliseBearing(degreesToNext)));
 			if((clock > 9)||(clock<3)) {
 				var distrounded = Math.round(poi.distance*1000);
 				var poiname = getKindOfPoi(poi.keyword) != "Unbekannt" ?  getKindOfPoi(poi.keyword) : poi.keyword;
