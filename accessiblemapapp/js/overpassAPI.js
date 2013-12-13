@@ -138,4 +138,3 @@ function getNodeInformation(nodeId) {
 			});
 	return deferred;
 }
-

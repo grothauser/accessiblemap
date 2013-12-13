@@ -1,6 +1,8 @@
 var destlat, destlon;
 var routeStart, routeEnd;
 var reverseroute = false;
+var meterRounder = 1000;
+var fiveMeter = 0.0005;
 
 function refreshRoute(){
 	getGPSLocation().done(function(){
@@ -66,7 +68,7 @@ function writeRoute(cords, wayVectors) {
 	//we need another step to get to the start of the route
 	//if we're on a mobile device we have a compass
 	checkCompass().done(function(compassvalue){
-		if(distance >= 0.0005){
+		if(distance >= fiveMeter){
 			degreesFromStart = calcCompassBearing(nextCoordinate.lat, nextCoordinate.lon,locatedLat, locatedLon,compassvalue);
 			degreesToNext = normaliseBearing(calcBearing(locatedLat, locatedLon, nextCoordinate.lat, nextCoordinate.lon));
 			degreesToOverNext =normaliseBearing(calcBearing(nextCoordinate.lat, nextCoordinate.lon,overNextCoordinate.lat, overNextCoordinate.lon));
@@ -159,17 +161,17 @@ function cleanRoute(route) {
 							nextStep = route[counter];
 							index++;
 						}
-						var finalDistance = Math.round(distSum*1000);
+						var finalDistance = Math.round(distSum*meterRounder);
 						finalRoute.push(new tempEntry(preStep.direction,finalDistance, routeStep.lat,routeStep.lon,preStep.bearingtoNext,routeStep.way));
 					}
 					else{
-						var finalDistance = Math.round(distSum*1000);
+						var finalDistance = Math.round(distSum*meterRounder);
 						finalRoute.push(new tempEntry(routeStep.direction,finalDistance, routeStep.lat,routeStep.lon,routeStep.bearingtoNext,routeStep.way));
 					}
 			} else if(index !== 0){
-				finalRoute.push(new tempEntry(routeStep.direction,Math.round(routeStep.distance*1000),routeStep.lat, routeStep.lon,routeStep.bearingtoNext,routeStep.way));
+				finalRoute.push(new tempEntry(routeStep.direction,Math.round(routeStep.distance*meterRounder),routeStep.lat, routeStep.lon,routeStep.bearingtoNext,routeStep.way));
 			}else{
-				finalRoute.push(new tempEntry(routeStep.direction,Math.round(routeStep.distance*1000),routeStep.lat, routeStep.lon,routeStep.bearingtoNext,routeStep.way));
+				finalRoute.push(new tempEntry(routeStep.direction,Math.round(routeStep.distance*meterRounder),routeStep.lat, routeStep.lon,routeStep.bearingtoNext,routeStep.way));
 				
 			}
 		}
@@ -240,7 +242,7 @@ function getCollapsibleForTags(index,routestep, navipois, degreesToNext){
 		$.each(navipois, function(i, poi){
 			var clock = getClock(calcCompassBearing(poi.lat, poi.lon,routestep.lat, routestep.lon, normaliseBearing(degreesToNext)));
 			if((clock > 9)||(clock<3)) {
-				var distrounded = Math.round(poi.distance*1000);
+				var distrounded = Math.round(poi.distance*meterRounder);
 				var poiname = getKindOfPoi(poi.keyword) != "Unbekannt" ?  getKindOfPoi(poi.keyword) : poi.keyword;
 				paragraph = paragraph.concat( poiname + " nach " +distrounded + " Meter <br>");
 			}

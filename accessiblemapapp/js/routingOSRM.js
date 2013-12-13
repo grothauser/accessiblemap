@@ -6,6 +6,7 @@ var nodesOfRoute = [];
 var minimumNodeDistance = 0.015;
 var reversedRoute = false;
 var minDist = 3; 
+var meterRounder = 1000;
 
 function getRouteOSRM(lat1, lon1,lat2, lon2, reverseroute) {
 	reversedRoute = reverseroute;
@@ -34,7 +35,7 @@ function extractCoordinates(data,lat1, lon1,lat2, lon2){
 	}
 	else{
 		var html;
-		if(calcDistance(lat1, lon1, lat2, lon2)*1000 < minDist){
+		if(calcDistance(lat1, lon1, lat2, lon2)*meterRounder < minDist){
 			html = "<p class=\"firstRouteStep\"> Sie haben Ihr Ziel erreicht.</p>";
 			$('#routingDirections').html(html + "</div>");
 			$('#routingDirections').trigger('create');
@@ -90,28 +91,27 @@ function fillRouteWithOverpassData(routeCoords){
 function searchNearestNodes(){
 	nodesOfRoute = [];
 	$.each(coords, function(i, coord){
-	var nearestNode;
-	var smallestDist;
-	$.each(allNodes, function(index, node){
-		var distance = calcDistance(node.lat,node.lon,coord.lat,coord.lon);
-		if(index == 0){
-			smallestDist = distance;
-			nearestNode = node;
-		}
-		if(distance < smallestDist){
-			smallestDist = distance;
-			nearestNode = node;
-		}
-		if(index == (allNodes.length-1)){
-			if(smallestDist <= minimumNodeDistance){
-				nodesOfRoute.push(new coordPair(coord.lat, coord.lon,nearestNode.id));
+		var nearestNode;
+		var smallestDist;
+		$.each(allNodes, function(index, node){
+			var distance = calcDistance(node.lat,node.lon,coord.lat,coord.lon);
+			if(index == 0){
+				smallestDist = distance;
+				nearestNode = node;
 			}
-			else{
-				nodesOfRoute.push(new coordPair(coord.lat, coord.lon,""));
+			if(distance < smallestDist){
+				smallestDist = distance;
+				nearestNode = node;
 			}
-		}
-		
-	});
+			if(index == (allNodes.length-1)){
+				if(smallestDist <= minimumNodeDistance){
+					nodesOfRoute.push(new coordPair(coord.lat, coord.lon,nearestNode.id));
+				}
+				else{
+					nodesOfRoute.push(new coordPair(coord.lat, coord.lon,""));
+				}
+			}
+		});
 	});
 }
 function alreadyInWays(way){
