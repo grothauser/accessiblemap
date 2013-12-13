@@ -358,7 +358,7 @@ function isInZurich(route){
 	var d = $.Deferred();
 	$.ajax({
 		url : "data/export.json",
-		data: "json",
+		dataType: "json",
 		success : function(data) {
 			//Get Zurich City Polygon
 			for (var i = 0; i < data.features[0].geometry.coordinates.length; i++) {
