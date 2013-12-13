@@ -79,7 +79,7 @@ function fillRouteWithOverpassData(routeCoords){
     			nodes.push(new point(nodeInfo.lat, nodeInfo.lon));
     			//if all nodeinfo is here
     			if(nodes.length === path.nodes.length){
-    				var wayVec = new wayVector(path.id, nodes, path.tags);
+    				var wayVec = new wayOfRoute(path.id, nodes, path.tags);
     				wayVectors.push(wayVec);
     			}
     		});
