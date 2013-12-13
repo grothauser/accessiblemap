@@ -3,6 +3,7 @@ var roadworks = [];
 var OPDistance = 300;
 var today;	
 var lat, lon;
+var meterRounder;
 
 function enricheWays(route, warnings){
 	orientationContent = [];
@@ -60,7 +61,7 @@ function fillPoisInBothSidesRoute(selPois, poiList, keyword, coord){
 				for(var i = 0; i<poi.wayIds.length; i++){
 					if((coord.way !== "" && typeof coord.way !== "undefined" && typeof coord.way.wayId !== "undefined")&&(coord.way.wayId === poi.wayIds[i])){
 						var dist = calcDistance(coord.lat, coord.lon, poi.lat, poi.lon);
-						if((dist*1000)<coord.distance){
+						if((dist*meterRounder)<coord.distance){
 							poisOnBothSides.push(new orientationEntry(poi.lat, poi.lon, poi.keyword, poi.tags, dist));
 						}
 					}
@@ -68,7 +69,7 @@ function fillPoisInBothSidesRoute(selPois, poiList, keyword, coord){
 			}else{
 				if((coord.way !== "" && typeof coord.way !== "undefined" && typeof coord.way.wayId !== "undefined")&&(coord.way.wayId === poi.wayId)){
 					var dist = calcDistance(coord.lat, coord.lon, poi.lat, poi.lon);
-					if((dist*1000)<=coord.distance){
+					if((dist*meterRounder)<=coord.distance){
 						poisOnBothSides.push(new orientationEntry(poi.lat, poi.lon, poi.keyword, poi.tags, dist));
 					}
 				}
