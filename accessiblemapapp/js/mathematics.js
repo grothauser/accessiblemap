@@ -1,4 +1,4 @@
-var streetWidth = 0.01;
+var streetWidth = 0.008;
 
 function dist2(v, w) { 
     return Math.pow((v.x - w.x),2) + Math.pow((v.y - w.y),2); 
