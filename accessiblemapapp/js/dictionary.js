@@ -25,7 +25,8 @@ function getKindOfPoi(string) {
 		return "Sitzbank";
 	case "warning":
 		return "Unvermerkte Kreuzung";
-	
+	case "fire_hydrant":
+		return "Hydrant";
 	case "bar":
 		return "Bar";
 	case "restaurant":
