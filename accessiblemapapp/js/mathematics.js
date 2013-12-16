@@ -131,6 +131,7 @@ function isPip(lat, lon, multipolyCoords){
 /*calculates the minimum and maximum coordinate of a route
  *used to find orientation points along the route */
 function getMinMaxForRoute(route){
+	var earthRadius = 6378137;
 	var bbox = [];
 	var minLon = route[0].lon;
 	var minLat = route[0].lat;
@@ -150,6 +151,10 @@ function getMinMaxForRoute(route){
 			maxLon = route[i].lon;
 		}
 		if(i == (route.length-1)){
+			minLon = parseFloat(minLon - (180/Math.PI)*(10/6378137)/Math.cos(minLat));
+			minLat = parseFloat(minLat - (180/Math.PI)*(10/6378137));
+			maxLon = parseFloat(maxLon + (180/Math.PI)*(10/6378137)/Math.cos(maxLat));
+			maxLat = parseFloat(maxLat + (180/Math.PI)*(10/6378137));
 			bbox.push(minLon);
 			bbox.push(minLat);
 			bbox.push(maxLon);
