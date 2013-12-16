@@ -2,7 +2,7 @@ var destlat, destlon;
 var routeStart, routeEnd;
 var reverseroute = false;
 var meterRounder = 1000;
-var fiveMeter = 0.0005;
+var rounding = 0.0005;
 
 function refreshRoute(){
 	getGPSLocation().done(function(){
@@ -68,7 +68,7 @@ function writeRoute(cords, wayVectors) {
 	//we need another step to get to the start of the route
 	//if we're on a mobile device we have a compass
 	checkCompass().done(function(compassvalue){
-		if(distance >= fiveMeter){
+		if(distance >= rounding){
 			degreesFromStart = calcCompassBearing(nextCoordinate.lat, nextCoordinate.lon,locatedLat, locatedLon,compassvalue);
 			degreesToNext = normaliseBearing(calcBearing(locatedLat, locatedLon, nextCoordinate.lat, nextCoordinate.lon));
 			degreesToOverNext =normaliseBearing(calcBearing(nextCoordinate.lat, nextCoordinate.lon,overNextCoordinate.lat, overNextCoordinate.lon));
