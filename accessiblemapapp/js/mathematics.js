@@ -151,18 +151,16 @@ function getMinMaxForRoute(route){
 		if(route[i].lon > maxLon){
 			maxLon = route[i].lon;
 		}
-		if(i == (route.length-1)){
-			minLon = parseFloat(minLon + (180/Math.PI)*(bufferLength/earthRadius)/Math.cos(minLat));
-			minLat = parseFloat(minLat - Math.abs((180/Math.PI)*(bufferLength/earthRadius)));
-			maxLon = parseFloat(maxLon - (180/Math.PI)*(bufferLength/earthRadius)/Math.cos(maxLat));
-			maxLat = parseFloat(maxLat + Math.abs((180/Math.PI)*(bufferLength/earthRadius)));
-			bbox.push(minLon);
-			bbox.push(minLat);
-			bbox.push(maxLon);
-			bbox.push(maxLat);
-			return bbox;
-		}	
 	}
+	minLon = parseFloat(minLon + (180/Math.PI)*(bufferLength/earthRadius)/Math.cos(minLat));
+	minLat = parseFloat(minLat - Math.abs((180/Math.PI)*(bufferLength/earthRadius)));
+	maxLon = parseFloat(maxLon - (180/Math.PI)*(bufferLength/earthRadius)/Math.cos(maxLat));
+	maxLat = parseFloat(maxLat + Math.abs((180/Math.PI)*(bufferLength/earthRadius)));
+	bbox.push(minLon);
+	bbox.push(minLat);
+	bbox.push(maxLon);
+	bbox.push(maxLat);
+	return bbox;
 }
 /* input: buffer to check, list of orientationpoints, coordinate of startpoint of routesection, length of routesection
  * output: all orientationpoints that are contained in the buffer of this routesection */

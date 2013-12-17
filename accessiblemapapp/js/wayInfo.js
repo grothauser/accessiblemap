@@ -427,7 +427,7 @@ function isInZurich(route){
 			$.each(route, function(index, coordinate){
 				zuricharray.push(isPip(coordinate.lat, coordinate.lon, multipolyCoords));
 				if(zuricharray.length === route.length){
-					d.resolve(isPip(coordinate.lat, coordinate.lon, multipolyCoords));
+					d.resolve($.inArray(true,zuricharray)!=-1);
 				}
 			});
 		}
