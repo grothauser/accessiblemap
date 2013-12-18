@@ -33,7 +33,6 @@ function calcBearing(lat1, lon1, lat2, lon2) {
 	// source : http://www.movable-type.co.uk/scripts/latlong.html
 	var lat1 = deg2rad(lat1);
 	var lat2 = deg2rad(lat2);
-	var dLat = deg2rad(lat2 - lat1);
 	var dLon = deg2rad(lon2 - lon1);
 	var y = Math.sin(dLon) * Math.cos(lat2);
 	var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)
