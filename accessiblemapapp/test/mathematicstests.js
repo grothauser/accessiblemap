@@ -1,17 +1,17 @@
 module('Mathematics');
-test("dist2(v, w) returns square distance from v to w", function () {
+test("squareDistance(v, w) returns square distance from v to w", function () {
 	var pointA = new point(1,1);
 	var pointB = new point(3,3);
 	var pointC = new point(-2,-2);
-	equal(dist2(pointA, pointB), 8);
-	equal(dist2(pointA, pointC), 18);
+	equal(squareDistance(pointA, pointB), 8);
+	equal(squareDistance(pointA, pointC), 18);
 });
 
-test("distToSegmentSquared(p, v, w) returns square distance from v to w", function () {
+test("distanceToSegmentSquared(p, v, w) returns square distance from v to w", function () {
 	var pointA = new point(1,1);
 	var pointB = new point(3,3);
 	var pointC = new point(2,5);
-	equal(distToSegmentSquared(pointC, pointA, pointB), 5);
+	equal(distanceToSegmentSquared(pointC, pointA, pointB), 5);
 });
 
 test("distToSegment(p, v, w) returns distance from line v w to point p", function () {

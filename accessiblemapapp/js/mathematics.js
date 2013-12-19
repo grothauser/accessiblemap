@@ -1,22 +1,22 @@
 var streetWidth = 0.008;
 
-function dist2(v, w) { 
-    return Math.pow((v.x - w.x),2) + Math.pow((v.y - w.y),2); 
+function squareDistance(s, e) { 
+    return Math.pow((s.x - e.x),2) + Math.pow((s.y - e.y),2); 
 }
-function distToSegmentSquared(p, v, w) {
-	var l2 = dist2(v, w);
-	if (l2 == 0) return dist2(p, v);
-	var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-	if (t < 0) return dist2(p, v);
-	if (t > 1) return dist2(p, w);
-	return dist2(p, { x: v.x + t * (w.x - v.x),
-                	  y: v.y + t * (w.y - v.y) });
+function distanceToSegmentSquared(p, s, e) {
+	var squareDist = squareDistance(s, e);
+	if (squareDist == 0) return squareDistance(p, s);
+	var t = ((p.x - s.x) * (e.x - s.x) + (p.y - s.y) * (e.y - s.y)) / squareDist;
+	if (t < 0) return squareDistance(p, s);
+	if (t > 1) return squareDistance(p, e);
+	return squareDistance(p, { x: s.x + t * (e.x - s.x),
+                	  y: s.y + t * (e.y - s.y) });
 }
 
-//input: point p, point v and point w  where v and w are start and end of segment 
+//input: point p, point s and point e  where s and e are start and end of segment 
 //output: distance between segment and point p
-function distToSegment(p, v, w) { 
-    return Math.sqrt(distToSegmentSquared(p, v, w)); 
+function distToSegment(p, s, e) { 
+    return Math.sqrt(distanceToSegmentSquared(p, s, e)); 
 }
 
 function deg2rad(a) {
