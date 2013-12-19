@@ -33,7 +33,6 @@ function calcBearing(lat1, lon1, lat2, lon2) {
 	// source : http://www.movable-type.co.uk/scripts/latlong.html
 	var lat1 = deg2rad(lat1);
 	var lat2 = deg2rad(lat2);
-	var dLat = deg2rad(lat2 - lat1);
 	var dLon = deg2rad(lon2 - lon1);
 	var y = Math.sin(dLon) * Math.cos(lat2);
 	var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)
@@ -51,11 +50,11 @@ function getAzimuth(degreesToNext,degreesToOverNext){
 function calcCompassBearing(destlat, destlon, startlat, startlon, compassHeading) {
 	var destinationBearing = normaliseBearing(calcBearing(startlat,startlon,destlat,destlon));
 	if(destinationBearing > compassHeading){
-		return destinationBearing - compassHeading;
+		return normaliseBearing(destinationBearing - compassHeading);
 	}else if(compassHeading > destinationBearing){
-		return 360 - (compassHeading - destinationBearing);
+		return normaliseBearing(360 - (compassHeading - destinationBearing));
 	}else{
-		return destinationBearing;
+		return normaliseBearing(destinationBearing);
 	}
 }
 
@@ -151,18 +150,16 @@ function getMinMaxForRoute(route){
 		if(route[i].lon > maxLon){
 			maxLon = route[i].lon;
 		}
-		if(i == (route.length-1)){
-			minLon = parseFloat(minLon - (180/Math.PI)*(bufferLength/earthRadius)/Math.cos(minLat));
-			minLat = parseFloat(minLat - (180/Math.PI)*(bufferLength/earthRadius));
-			maxLon = parseFloat(maxLon + (180/Math.PI)*(bufferLength/earthRadius)/Math.cos(maxLat));
-			maxLat = parseFloat(maxLat + (180/Math.PI)*(bufferLength/earthRadius));
-			bbox.push(minLon);
-			bbox.push(minLat);
-			bbox.push(maxLon);
-			bbox.push(maxLat);
-			return bbox;
-		}	
 	}
+	minLon = parseFloat(minLon + (180/Math.PI)*(bufferLength/earthRadius)/Math.cos(minLat));
+	minLat = parseFloat(minLat - Math.abs((180/Math.PI)*(bufferLength/earthRadius)));
+	maxLon = parseFloat(maxLon - (180/Math.PI)*(bufferLength/earthRadius)/Math.cos(maxLat));
+	maxLat = parseFloat(maxLat + Math.abs((180/Math.PI)*(bufferLength/earthRadius)));
+	bbox.push(minLon);
+	bbox.push(minLat);
+	bbox.push(maxLon);
+	bbox.push(maxLat);
+	return bbox;
 }
 /* input: buffer to check, list of orientationpoints, coordinate of startpoint of routesection, length of routesection
  * output: all orientationpoints that are contained in the buffer of this routesection */
@@ -200,19 +197,17 @@ function getPointsInBuffer(buffer, selPoi, lat,lon, distance) {
 //caluclates the bounding box for a coordinate with a certain radius
 //input: radius in meter
 function getBbox(lat, lon, radius) {
-	var radiusX = radius/1000;
-	var radiusY = radius/1000;
+	var radius = radius/1000;
 
-	var degreesOfRadiusX = (radiusX / 111.111);
-	var degreesOfRadiusY = (radiusY / 111.111);
+	var degreesOfRadius = (radius / 111.111);
 	
-	var degreesOfLatY = degreesOfRadiusY * Math.cos(((lat * Math.PI)/180));
+	var degreesOfLatY = degreesOfRadius * Math.cos(((lat * Math.PI)/180));
 	
 	//longitudes 
 	var bbox = [];
-	bbox.push(parseFloat(lon - degreesOfRadiusX));
+	bbox.push(parseFloat(lon - degreesOfRadius));
 	bbox.push(parseFloat(lat - degreesOfLatY));
-	bbox.push(parseFloat(lon + degreesOfRadiusX));
+	bbox.push(parseFloat(lon + degreesOfRadius));
 	bbox.push(parseFloat(lat + degreesOfLatY));
 	return bbox;
 }
