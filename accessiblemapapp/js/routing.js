@@ -30,7 +30,7 @@ function reverseRoute(){
 	destlon = routeStart.y;
 	reverseroute = true;
 
-	getRoute(routeEnd.x, routeEnd.y,routeStart.x, routeStart.y);
+	getRoute(routeEnd.x, routeEnd.y,routeStart.x, routeStart.y, reverseroute);
 }
 function getRoute(lat,lon,destlat, destlon, reverseroute) {
 		

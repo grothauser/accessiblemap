@@ -1,6 +1,5 @@
 //TODO: nicht jedesmal einen listener hinzufügen
 function checkCompass() {
-	console.log("reading compass");
 	var deferred = $.Deferred();
 	var isFirefox = typeof InstallTrigger !== 'undefined';
 	if (!isFirefox) {
@@ -8,14 +7,12 @@ function checkCompass() {
 			
 			// window.setInterval(function(){
 			window.addEventListener('deviceorientation', function(event) {
-				console.log(event);
 				// iOs
 				if (event.webkitCompassHeading) {
 					deferred.resolve(event.webkitCompassHeading);
 				}
 				// non iOS is the other way round
 				else {
-					console.log("3");
 					if (!window.chrome) {
 						if (event.alpha == null) {
 							deferred.resolve(0);
