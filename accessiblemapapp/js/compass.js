@@ -1,4 +1,3 @@
-//TODO: nicht jedesmal einen listener hinzufügen
 function checkCompass() {
 	console.log("reading compass");
 	var deferred = $.Deferred();
