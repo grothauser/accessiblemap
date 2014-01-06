@@ -47,25 +47,7 @@ function checkCompass() {
 	return deferred;
 }
 
-// <DOCTYPE html>
-// <html>
-// <head>
-// <script>
-// function init() {
-// var dataContainerOrientation =
-// document.getElementById('dataContainerOrientation');
-// var dataContainerMotion = document.getElementById('dataContainerMotion');
-// if(window.DeviceOrientationEvent) {
-// window.addEventListener('deviceorientation', function(event) {
-// var alpha = event.alpha;
-// var beta = event.beta;
-// var gamma = event.gamma;
-//               
-// if(alpha!=null || beta!=null || gamma!=null)
-// dataContainerOrientation.innerHTML = '<strong>Orientation</strong><br
-// />alpha: ' + alpha + '<br/>beta: ' + beta + '<br />gamma: ' + gamma;
-// }, false);
-// }
+
 
 /*
  * input: degrees between 0 and 360 output: direction as clock number
