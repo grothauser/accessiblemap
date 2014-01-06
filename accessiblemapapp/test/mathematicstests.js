@@ -1,17 +1,17 @@
 module('Mathematics');
-test("dist2(v, w) returns square distance from v to w", function () {
+test("squareDistance(v, w) returns square distance from v to w", function () {
 	var pointA = new point(1,1);
 	var pointB = new point(3,3);
 	var pointC = new point(-2,-2);
-	equal(dist2(pointA, pointB), 8);
-	equal(dist2(pointA, pointC), 18);
+	equal(squareDistance(pointA, pointB), 8);
+	equal(squareDistance(pointA, pointC), 18);
 });
 
-test("distToSegmentSquared(p, v, w) returns square distance from v to w", function () {
+test("distanceToSegmentSquared(p, v, w) returns square distance from v to w", function () {
 	var pointA = new point(1,1);
 	var pointB = new point(3,3);
 	var pointC = new point(2,5);
-	equal(distToSegmentSquared(pointC, pointA, pointB), 5);
+	equal(distanceToSegmentSquared(pointC, pointA, pointB), 5);
 });
 
 test("distToSegment(p, v, w) returns distance from line v w to point p", function () {
@@ -86,4 +86,8 @@ test("isLeft(alat, alon, blat, blon, clat, clon) returns true, if point(c) is le
 });
 test("calcDistance(lat1, lon1, lat2, lon2) returns distance between two points", function(){
 	equal(Math.round(calcDistance(47.22074, 8.81123, 47.22391, 8.8159)*1000),499);
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 7dec8cc2f1146e4ce227e0c6624229f1916090a0
