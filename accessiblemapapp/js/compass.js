@@ -1,4 +1,3 @@
-//TODO: nicht jedesmal einen listener hinzufügen
 function checkCompass() {
 	var deferred = $.Deferred();
 	var isFirefox = typeof InstallTrigger !== 'undefined';
