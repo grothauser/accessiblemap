@@ -1,4 +1,3 @@
-
 function searchOverpassForLocationCoords(lat, lon, keyWord) {
 	var deferred = $.Deferred();
 	var bbox = getBbox(lat, lon, "100");
@@ -139,4 +138,3 @@ function getNodeInformation(nodeId) {
 			});
 	return deferred;
 }
-

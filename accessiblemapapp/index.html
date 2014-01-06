@@ -61,7 +61,7 @@
 								<h3>Umgebungsinhalte</h3>
 							</div>
 							<div class="ui-block-b">
-								<a href="#" onClick="getStreetView()" data-role="button" data-mini="true" data-theme="a" data-icon="check">Ausgeben</a>
+								<a href="#streetViewLeft" onClick="getStreetView()" data-role="button" data-mini="true" data-theme="a" data-icon="check">Ausgeben</a>
 							</div>
 						</div><!-- /grid-a -->
 					</div>
@@ -92,8 +92,8 @@
 										<input type="checkbox"  id="highway=crossing" name="op"  class="custom" />
 										<label for="highway=crossing" >Fussgängerstreifen</label>
 
-										<input type="checkbox"  id="amenity=hydrant" name="op"  class="custom"/>
-										<label for="amenity=hydrant" >Hydrante</label>
+										<input type="checkbox"  id="emergency=fire_hydrant" name="op"  class="custom"/>
+										<label for="emergency=fire_hydrant" >Hydrante</label>
 										
 										<input type="checkbox" id="intersections" class="custom" name="op" checked="checked"/>
 										<label for="intersections" >Kreuzungen</label>
@@ -536,8 +536,7 @@
 						<h3>Umkreisradius</h3>
 					</div>
 					<p>
-						Bei der Suche von POI's (Restaurants, Bars, Läden etc.) wird nur ein gewisser Radius berücksichtig,
-						dieser kann hier eingestellt werden.
+						Die Suche nach POIs (z.B. Restaurants, Bars, Läden) ist auf einen bestimmten Umkreis um den eigenen Standort herum beschränkt.
 					</p>
 					<div data-role="fieldcontain">
 						<label for="select-choice-radius" class="select">Radius:</label>
@@ -607,23 +606,23 @@
 			<div data-role="header" data-position="fixed" class="ui-bar-a" data-theme="a"  data-tap-toggle="false">
 				<a href="#" data-rel="back" data-icon="arrow-l" class="ui-btn-left">Zurück</a>
 				<h1>Accessible Map</h1>
-				<h2>About Accessible Map</h2>
+				<h2>Info</h2>
 			</div>
 			<!--/header -->
 
 			<!-- content -->
 			<div id="contentInfo" data-role="content" >
 				<p>
-					<b>Version:</b> 0.1
+					<b>Version:</b> 1.0
 				</p>
 				<p>
-					<b>Website:</b><a href="www.accessiblemap.ch">www.accessiblemap.ch</a>
+					<b>Website:</b> <a href="www.accessiblemap.ch">www.accessiblemap.ch</a>
+				</p> 
+				<p>
+					<b>Melde einen Fehler:</b> <a href="https://github.com/bitterzoet/accessiblemap/issues" >Github</a>
 				</p>
 				<p>
-					<b>Melde einen Fehler:</b><a href="https://github.com/bitterzoet/accessiblemap/issues" >Github</a>
-				</p>
-				<p>
-					<b>Entwickler</b>
+					<h2 data-theme="a">Entwickler</h2>
 				</p>
 				<p>
 					Gwendoline Rothauser
@@ -631,7 +630,7 @@
 					Julia Schmucki
 				</p>
 				<p>
-					<b>Beteiligte:</b>
+					<h2 data-theme="a">Beteiligte</h2>
 				</p>
 				<p>
 					HSR Hochschule für Technik Rapperswil
@@ -641,14 +640,15 @@
 				<p>
 					<img src="../css/images/HSR_Logo_CMYK.jpg" alt="LogoHSR">
 				</p>
-				<h4>Credits</h4>
-				<p>
-					<b>Partner:</b> Stiftung Zugang für alle, Stadt Zürich
-					<br>
-					<b>Geodaten:</b> OpenstreetMap, Open Government Data Zürich
-					<br>
-					<b>Routing-Dienst:</b> OSRM (routing-osrm.ch)
-				</p>
+				<h2 data-theme="a">Credits</h2>
+				<b>Partner:</b> Stiftung Zugang für alle </br>
+				<b>Partner:</b> Stadt Zürich </br>
+				<b>Geodaten:</b> OpenStreetMap </br>
+				<b>Geodaten:</b> Open Government Data Zürich </br>
+				<b>Webdienst:</b> OSRM (Routing) </br>
+				<b>Webdienst:</b> TROBDB (Baustellen) </br>
+				
+			
 			</div><!--/content -->
 
 			<!-- footer -->

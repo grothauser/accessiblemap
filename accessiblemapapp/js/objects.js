@@ -9,11 +9,6 @@ function distSegmentEntry(startlat,startlon,endLat,endLon,matchedLat,matchedLon,
 	this.wayId = wayId;
 	this.way = way;
 }
-function wayVector(wayId, nodes, tags){
-	this.wayId = wayId;
-	this.nodes = nodes;
-	this.tags = tags;
-}
 //used for calculation with coordinates
 function point(x,y){
 	this.x = x;
@@ -40,6 +35,7 @@ function wayOfRoute(wayId, nodes,tags) {
 	this.nodes = nodes;
 	this.tags = tags;
 }
+
 function way( wayId, tags, node, lat, lon){
 	this.wayId = wayId;
 	this.tags = tags;

@@ -36,12 +36,12 @@ function initPage(){
 					checkbox = $(this);
 					var isChecked = localStorage.getItem(checkbox.attr('id'));
 					//for the first time we set all orientation points checked
+					id = checkbox.attr('id')
 					if(isChecked === null){
 						if(checkbox.attr('name')==='op'){
 								checkbox.prop('checked', 'true').checkboxradio("refresh");
 								localStorage.setItem(id, checkbox.prop('checked'));
 						}else{
-								id = checkbox.attr('id')
 								if($.inArray(id,defaultValues) != -1){
 									checkbox.prop('checked', 'true').checkboxradio("refresh");
 									localStorage.setItem(id, checkbox.prop('checked'));

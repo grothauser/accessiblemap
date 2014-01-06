@@ -1,8 +1,9 @@
 var orientationContent = [];
 var roadworks = [];
-var OPDistance = 0.3;
+var OPDistance = 300;
 var today;	
 var lat, lon;
+var meterRounded = 1000;
 
 function enricheWays(route, warnings){
 	orientationContent = [];
@@ -44,7 +45,7 @@ function enricheWays(route, warnings){
 				}
 			}
 			else if(index === (route.length-1)){
-				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, "", "", "",""));
+				enrichedRoute.push(new finalElement(coordinate.distance, coordinate.direction, coordinate.lat, coordinate.lon, "",""));
 				deferred.resolve(enrichedRoute);
 			}
 		});
@@ -60,7 +61,7 @@ function fillPoisInBothSidesRoute(selPois, poiList, keyword, coord){
 				for(var i = 0; i<poi.wayIds.length; i++){
 					if((coord.way !== "" && typeof coord.way !== "undefined" && typeof coord.way.wayId !== "undefined")&&(coord.way.wayId === poi.wayIds[i])){
 						var dist = calcDistance(coord.lat, coord.lon, poi.lat, poi.lon);
-						if((dist*1000)<coord.distance){
+						if((dist*meterRounded)<coord.distance){
 							poisOnBothSides.push(new orientationEntry(poi.lat, poi.lon, poi.keyword, poi.tags, dist));
 						}
 					}
@@ -68,7 +69,7 @@ function fillPoisInBothSidesRoute(selPois, poiList, keyword, coord){
 			}else{
 				if((coord.way !== "" && typeof coord.way !== "undefined" && typeof coord.way.wayId !== "undefined")&&(coord.way.wayId === poi.wayId)){
 					var dist = calcDistance(coord.lat, coord.lon, poi.lat, poi.lon);
-					if((dist*1000)<=coord.distance){
+					if((dist*meterRounded)<=coord.distance){
 						poisOnBothSides.push(new orientationEntry(poi.lat, poi.lon, poi.keyword, poi.tags, dist));
 					}
 				}
@@ -255,6 +256,16 @@ function getOrientationPoints(route,selectedPoints, intersections){
 						deferred.resolve();
 					}
 				});
+			}else if((keyword == "amenity=waste_basket") &&( bool) ){
+				findWasteBasket(bbox).done(function(data){
+					counter--;
+					$.each(data, function(k, waste){
+						orientationContent.push(new orientationEntry(waste.lat, waste.lon, keyword, waste.tags));
+					});
+					if(counter === 0){
+						deferred.resolve();
+					}
+				});
 			}
 			else if(keyword == "roadworks"){
 				getRoadworks(route).done(function(){
@@ -274,6 +285,48 @@ function getOrientationPoints(route,selectedPoints, intersections){
 			}
 		});
 	});
+	return deferred;
+}
+
+function findTreeStreet(bbox) {
+	var deferred = $.Deferred();
+	var trees = [];
+	$.ajax({
+		type: 'GET',
+		url : "../data/baumkataster.json",
+		dataType: 'json',
+		success : function(data) {
+			$.each(data.features, function(index, geom){
+				var lat = geom.geometry.coordinates[1];
+				var lon = geom.geometry.coordinates[0];
+				if((lat>bbox[1]) && (lon>bbox[0]) && (lat<bbox[3]) && (lon<bbox[2])){
+					trees.push(new orientationEntry(lat, lon, "tree", geom.properties));
+				}
+			});
+			deferred.resolve(trees);
+		}	
+	});	
+	return deferred;
+}
+
+function findWasteBasket(bbox) {
+	var deferred = $.Deferred();
+	var waste = [];
+	$.ajax({
+		type: 'GET',
+		url : "../data/abfallgefaess.json",
+		dataType: 'json',
+		success : function(data) {
+			$.each(data.features, function(index, geom){
+				var lat = geom.geometry.coordinates[1];
+				var lon = geom.geometry.coordinates[0];
+				if((lat>bbox[1]) && (lon>bbox[0]) && (lat<bbox[3]) && (lon<bbox[2])){
+					waste.push(new orientationEntry(lat, lon, "waste_basket", geom.properties));
+				}
+			});
+			deferred.resolve(waste);
+		}	
+	});	
 	return deferred;
 }
 
@@ -374,40 +427,14 @@ function isInZurich(route){
 			$.each(route, function(index, coordinate){
 				zuricharray.push(isPip(coordinate.lat, coordinate.lon, multipolyCoords));
 				if(zuricharray.length === route.length){
-					d.resolve(isPip(coordinate.lat, coordinate.lon, multipolyCoords));
+					d.resolve($.inArray(true,zuricharray)!=-1);
 				}
 			});
 		}
 	});
 	return d;
 }
-function getPoisForKeyWord(bbox, keyWord){
-	var deferred = $.Deferred();
-	$.ajax({
-		type : 'GET',
-		url : "http://overpass.osm.rambler.ru/cgi/interpreter?data=[out:json];node["+keyWord+"]("+bbox[1]+","+bbox[0]+","+bbox[3]+","+bbox[2]+");out;",
-		dataType : 'json',
-		jsonp : 'json_callback',
-		error : function(parameters) {
-			console.error("error");
-		},
-		success : function(parameters) {
-			if(parameters.elements.length > 0){
-				$.each(parameters.elements, function(index, data){
-					var entry = new orientationEntry(data.lat, data.lon, keyWord, data.tags);
-					orientationContent.push(entry);
-					if(index == (parameters.elements.length-1)){
-						deferred.resolve("");
-					}
-				});
-			}
-			else{
-				deferred.resolve("0");
-			}
-		},
-	});
-	return deferred;
-}
+
 function getDate(){
 	//get Date to test, if roadworks are actual
 	today = new Date();
