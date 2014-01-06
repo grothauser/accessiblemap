@@ -86,4 +86,8 @@ test("isLeft(alat, alon, blat, blon, clat, clon) returns true, if point(c) is le
 });
 test("calcDistance(lat1, lon1, lat2, lon2) returns distance between two points", function(){
 	equal(Math.round(calcDistance(47.22074, 8.81123, 47.22391, 8.8159)*1000),499);
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 7dec8cc2f1146e4ce227e0c6624229f1916090a0

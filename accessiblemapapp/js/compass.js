@@ -1,35 +1,57 @@
 //TODO: nicht jedesmal einen listener hinzufügen
-function checkCompass(){
+function checkCompass() {
+	console.log("reading compass");
 	var deferred = $.Deferred();
-	if(window.DeviceOrientationEvent) {
-		window.setInterval(function(){
-		window.addEventListener('deviceorientation', function(event) {
-			//iOs
-			 if(event.webkitCompassHeading) {
-                 deferred.resolve(event.webkitCompassHeading);
-               }
-               //non iOS is the other way round
+	var isFirefox = typeof InstallTrigger !== 'undefined';
+	if (!isFirefox) {
+		if (window.DeviceOrientationEvent) {
+			
+			// window.setInterval(function(){
+			window.addEventListener('deviceorientation', function(event) {
+				console.log(event);
+				// iOs
+				if (event.webkitCompassHeading) {
+					deferred.resolve(event.webkitCompassHeading);
+				}
+				// non iOS is the other way round
 				else {
-					
+					console.log("3");
 					if (!window.chrome) {
-						deferred.resolve(event.alpha - 270);
-					}else{
-						deferred.resolve(event.alpha);
+						if (event.alpha == null) {
+							deferred.resolve(0);
+						} else {
+							deferred.resolve(event.alpha - 270);
+						}
+
+					} else {
+						if (event.alpha == null) {
+							deferred.resolve(0);
+						} else {
+							deferred.resolve(event.alpha);
+						}
 					}
 				}
-			
+
 			}, false);
+			// }
+			// ,
+			// 3600); //intervall in ms
+		} else {
+			deferred.resolve(0);
 		}
-		,
-		360);	//intervall in ms
-	}else{
+
+	} else {
+		console.log("firefox");
 		deferred.resolve(0);
 	}
 	return deferred;
 }
 
-/*	input: degrees between 0 and 360 
-	output: direction as clock number */ 
+
+
+/*
+ * input: degrees between 0 and 360 output: direction as clock number
+ */
 function getClock(degrees) {
 	var clockNumber = 0;
 	if (degrees >= 0 && degrees < 15) {
@@ -61,4 +83,3 @@ function getClock(degrees) {
 	}
 	return clockNumber;
 }
-
