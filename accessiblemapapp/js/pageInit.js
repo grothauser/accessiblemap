@@ -59,31 +59,36 @@ function initPage(){
 }
 
 function setListener(){
+	var firstLeft = true;
 	$('input[name=routeChoiceLeft]').change(function(event) {
-		if ($('#selectedPOIButtonLeftUpper').length) {
+		if (!firstLeft) {
 			$('#selectedPOIButtonLeftUpper  .ui-btn-text').text("Navigieren nach " + $(this).val());
 			$('#selectedPOIButtonLeftDown  .ui-btn-text').text("Navigieren nach " + $(this).val());
 			$('#aroundLeft').trigger('create');
 		} else {
-			$('#aroundLeft').prepend('<a href="#" data-transition="none" data-role="button" "data-icon="arrow-u" id="selectedPOIButtonLeftUpper" >Navigieren nach ' +$(this).val() + '</a>');
-			$('#aroundLeft').append('<a href="#" data-transition="none" data-role="button" "data-icon="arrow-u" id="selectedPOIButtonLeftDown" >Navigieren nach ' +$(this).val() + '</a>');
+			$('#selectedPOIButtonLeftUpper  .ui-btn-text').text("Navigieren nach " + $(this).val());
+			$('#selectedPOIButtonLeftDown .ui-btn-text').text("Navigieren nach " +$(this).val());
 			bindClickEvent('#selectedPOIButtonLeftUpper', 'Left');
 			bindClickEvent('#selectedPOIButtonLeftDown','Left');			
 			$('#aroundLeft').trigger('create');
+			firstLeft = false;
 		}
 	});
 
+	var firstRight = true;
 	$("input[name='routeChoiceRight']").change(function(event) {
-		if ($('#selectedPOIButtonRightUpper').length) {
+		console.log(firstRight);
+		if (!firstRight) {
 			$('#selectedPOIButtonRightUpper  .ui-btn-text').text("Navigieren nach " +$(this).val());
 			$('#selectedPOIButtonRightDown  .ui-btn-text').text("Navigieren nach " +$(this).val());
 			$('#aroundRight').trigger('create');
 		} else {
-			$('#aroundRight').prepend('<a href="#" data-transition="none" data-role="button" "data-icon="arrow-u" id="selectedPOIButtonRightUpper" >Navigieren nach ' +$(this).val() + '</a>');
-			$('#aroundRight').append('<a href="#" data-transition="none" data-role="button" "data-icon="arrow-u" id="selectedPOIButtonRightDown" >Navigieren nach ' +$(this).val() + '</a>');
+			$('#selectedPOIButtonRightUpper  .ui-btn-text').text("Navigieren nach " +$(this).val());
+			$('#selectedPOIButtonRightDown  .ui-btn-text').text("Navigieren nach " +$(this).val());
 			bindClickEvent('#selectedPOIButtonRightUpper', 'Right');
 			bindClickEvent('#selectedPOIButtonRightDown', 'Right');
 			$('#aroundRight').trigger('create');
+			firstRight = false;
 		}
 	});
 }
