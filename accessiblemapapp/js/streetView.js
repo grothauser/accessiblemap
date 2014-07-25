@@ -85,15 +85,16 @@ function getAddressForLatLon() {
 function cutout(string){
     var addr = string.trim();
     var index = addr.lastIndexOf(' ');
-    
-    var final = addr;
-    if(index != addr.length){
-         final =  addr.substring(0,index);
+    console.log(addr);
+  
+    if(index != -1){
+         addr =  addr.substring(0,index);
     }
-    if(final.indexOf("str")!=-1){
-        final = final.replace("str","strasse");
+    if(addr.indexOf("str")!=-1 && addr.indexOf('strasse') == -1){
+        addr = addr.replace("str","strasse");
     }
-   return final;
+
+   return addr;
 }
 
 
@@ -101,10 +102,10 @@ function getManualLocation() {
 	var streetInput = $('#street').val().trim();
 	var placeInput = $('#place').val().trim();
 	var plzInput = $('#plz').val().trim();
-	
+	console.log(streetInput + "," + placeInput + "," + plzInput);
 	streetInput = cutout(streetInput);
 	
-	getWayFromNominatim(streetInput, numberInput, plzInput, placeInput).done(function(data) {
+	getWayFromNominatim(streetInput, plzInput, placeInput).done(function(data) {
 		// has too many matches
 		if (data.length > 10) {
 			$('#dialog').dialog('close');
@@ -169,7 +170,8 @@ function setManualLocation() {
 		}
 	});
 }
-function getWayFromNominatim(street, number, plz, place) {
+function getWayFromNominatim(street, plz, place) {
+console.log(place);
 	var wayResults = [];
 	var deferred = $.Deferred();
 	$.ajax({
@@ -184,7 +186,8 @@ function getWayFromNominatim(street, number, plz, place) {
 		success : function(parameters) {
 			// if there is more than one result
 			var result;
-			if (parameters.length > 1) {
+			console.log(parameters);
+			if (parameters.length >= 1) {
 				$.each(parameters, function(index, data) {
 					//only ways
 					if((data.osm_type == "way") &&(data.class == "highway")){
@@ -193,20 +196,20 @@ function getWayFromNominatim(street, number, plz, place) {
 							if (data.address.postcode == plz) {
 								wayResults.push(data);
 								deferred.resolve(wayResults);
-							} else if(data.address.city == place){
+							} else {
 								wayResults.push(data);
 								deferred.resolve(wayResults);
-							}else{
-								wayResults.push(data);
 							}
+						}else{
+								wayResults.push(data);
+								deferred.resolve(wayResults);
 						}
 					}
 					if(index == (parameters.length-1)){
 						deferred.resolve(wayResults);
 					}
 				});
-			} else if (parameters.length == 1) {
-				deferred.resolve(wayResults);
+			
 			} else {
 				deferred.resolve("");
 			}
