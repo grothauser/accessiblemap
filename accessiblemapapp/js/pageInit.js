@@ -16,7 +16,14 @@ function initPage(){
 		}
 		$('#select-choice-radius').val(getRadius());
 	});
-			
+$("#dialog").live('keyup', function(event){
+ if ( event.keyCode == 13)  {
+     $("#selectLocation").click();
+  }
+  else if(event.keyCode == 27){
+   $("#cancelLocation").click();
+  }
+});	
 	$(document).on('pageinit','#location', function() {
 		if ($('#locationOutput').html() === "Suche Standort...") {
 				getGPSLocation();
@@ -24,7 +31,13 @@ function initPage(){
 		$('#select-choice-radius').val(getRadius());
 		
 		$('#selectLocation').bind("click", function(event,ui){
+		if(($('#street').val()!="" && $('#place').val()!="") || ($('#plz').val() !="" && $('#street').val()!="")){
 			getManualLocation();
+		}else{
+			$('#locationOutput').text("Zu wenig Angaben übermittelt, versuchen Sie es noch einmal. (Mind. Ort und PLZ oder Ort und Strasse).");
+			$("#cancelLocation").click();
+		}
+			
 		});
 		$("input[type='checkbox']").bind("change", function(event, ui) {
 			localStorage.setItem($(this).attr('id'), $(this).prop('checked'));
@@ -92,6 +105,8 @@ function setListener(){
 		}
 	});
 }
+
+
 
 function bindClickEvent(button,dir){
 	$(button).bind('click', function(){
