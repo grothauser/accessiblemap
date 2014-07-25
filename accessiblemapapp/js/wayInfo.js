@@ -289,6 +289,7 @@ function getOrientationPoints(route,selectedPoints, intersections){
 }
 
 function findTreeStreet(bbox) {
+
 	var deferred = $.Deferred();
 	var trees = [];
 	$.ajax({
@@ -310,6 +311,7 @@ function findTreeStreet(bbox) {
 }
 
 function findWasteBasket(bbox) {
+
 	var deferred = $.Deferred();
 	var waste = [];
 	$.ajax({
@@ -410,7 +412,7 @@ function isInZurich(route){
 	var multipolyCoords = [];
 	var d = $.Deferred();
 	$.ajax({
-		url : "data/export.json",
+		url : "../data/export.json",
 		dataType: "json",
 		success : function(data) {
 			//Get Zurich City Polygon
