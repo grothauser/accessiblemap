@@ -85,12 +85,12 @@ function getAddressForLatLon() {
 function cutout(string){
     var addr = string.trim();
     var index = addr.lastIndexOf(' ');
-    console.log(addr);
+  
   
     if(index != -1){
          addr =  addr.substring(0,index);
     }
-    if(addr.indexOf("str")!=-1 && addr.indexOf('strasse') == -1){
+    if((addr.indexOf("str")!=-1 ) && (addr.indexOf('strasse') == -1)){
         addr = addr.replace("str","strasse");
     }
 
