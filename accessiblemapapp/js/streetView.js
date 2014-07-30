@@ -232,7 +232,6 @@ function getWayFromNominatim(street, plz, place) {
         success: function (parameters) {
             // if there is more than one result
             var result;
-            console.log(parameters);
             if (parameters.length > 1) {
                 $.each(parameters, function (index, data) {
                     //only ways
@@ -256,7 +255,8 @@ function getWayFromNominatim(street, plz, place) {
                     }
                 });
             }
-            else if (parameters.length === 1) {
+            else if (parameters.length == 1) {
+                wayResults.push(parameters[0]);
                 deferred.resolve(wayResults);
             }
             else {
