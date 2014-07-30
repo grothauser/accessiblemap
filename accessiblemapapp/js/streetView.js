@@ -57,11 +57,11 @@ function writeActualLocation(way) {
     getAddressForLatLon().done(function (address) {
         if ((typeof address != "undefined") && (typeof way.way != "undefined")) {
             locationManual = false;
-            if (typeof address.postcode === "undefined") {
+            if (typeof address.postcode == 'undefined') {
                 address.postcode = "";
             }
-            var addressPLZ = address.postcode == 'undefined' ? "" : address.postcode;
-            var addresscity = address.city == 'undefined' ? "" : address.city;
+            var addressPLZ = typeof address.postcode == 'undefined' ? "" : address.postcode;
+            var addresscity = typeof address.city == 'undefined' ? "" : address.city;
             $('#locationOutput').html(getTypeOfWay(way.way.tags) + ", <br>" + addressPLZ + " " + addresscity);
         }
         else {
