@@ -90,7 +90,6 @@ function cutout(string) {
     var addr = string.trim();
     var index = addr.lastIndexOf(' ');
 
-
     if (index != -1) {
         addr = addr.substring(0, index);
     }
@@ -101,12 +100,10 @@ function cutout(string) {
     return addr;
 }
 
-
 function getManualLocation() {
     var streetInput = $('#street').val().trim();
     var placeInput = $('#place').val().trim();
     var plzInput = $('#plz').val().trim();
-    console.log(streetInput + "," + placeInput + "," + plzInput);
     streetInput = cutout(streetInput);
 
     getWayFromNominatim(streetInput, plzInput, placeInput).done(function (data) {
@@ -144,6 +141,7 @@ function getManualLocation() {
         }
     });
 }
+
 function setManualLocationCandidate(candidate) {
    
     lat = candidate.lat;
@@ -173,11 +171,13 @@ function setManualLocationCandidate(candidate) {
             locatedWay = distSeg;
 
             $('#locationOutput').html(candidate.display_name);
+            console.log(candidate.display_name);
             $.mobile.changePage($("#location"), "none");
             locationManual = true;
         });
     });
 }
+
 function setManualLocation() {
     var wayId = $("input[name=radioLocation]:checked").val();
     $.each(candidatesForManualSearch, function (index, candidate) {
@@ -215,6 +215,7 @@ function setManualLocation() {
         }
     });
 }
+
 function getWayFromNominatim(street, plz, place) {
     console.log(place);
     var wayResults = [];
@@ -282,7 +283,6 @@ function getStreetContent(startentry, endentry) {
     var intersections = findIntersections(wayVectors, lat, lon);
     var warnings = getIsecWarnings(wayVectors);
 
-
     checkCompass().done(function (compassvalue) {
         var turned = isTurned(compassvalue, startentry);
         enrichStreetWay(locatedWay, intersections, warnings, lat, lon, turned).done(function (enrichedStreet) {
@@ -307,6 +307,7 @@ function getStreetContent(startentry, endentry) {
         });
     });
 }
+
 function writeStreetViewHTML(enrichedStreet, compassvalue) {
     var refreshButton = '<a href="#" data-icon="refresh" onClick="refreshStreetView();" data-role="button" >Ansicht aktualisieren</a>'
     var collapsibleSetLeft = '<div data-role="collapsible-set" data-theme="c" data-content-theme="d">';
@@ -388,6 +389,7 @@ function printOPS(finalroute, compval) {
     $('#opsLeft .ui-btn-text').text('Orientierungspunkte in dieser Strasse: ' + countLeft);
     $('#opsRight .ui-btn-text').text('Orientierungspunkte in dieser Strasse: ' + countRight);
 }
+
 function getPOISHTML(side) {
     var radioname, htmlAround;
     if (side == "left") {
@@ -444,6 +446,7 @@ function locateStreet() {
     });
     return deferred;
 }
+
 function getSelectedPois() {
     var selectedPOIs = [];
     $("input[type=checkbox]").each(function () {
@@ -655,6 +658,7 @@ function addIsecWay(isecEntry, intersections, index) {
     }
     return newIntersections;
 }
+
 function getIntersection(nodeArray, way) {
     var isec = -1;
     $.each(nodeArray, function (index, node) {
@@ -666,6 +670,7 @@ function getIntersection(nodeArray, way) {
     });
     return isec;
 }
+
 function isAlreadyInIntersections(intersection, intersections) {
     var alreadyIn = -1;
     $.each(intersections, function (i, isec) {
